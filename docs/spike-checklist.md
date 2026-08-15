@@ -27,10 +27,11 @@ Use a sandbox or your own parcel (you need media permissions on the land).
 | 6 | Second avatar | Friend/alt nearby sees the same, synced | ☐ |
 | 7 | Performance | Watchable framerate on the prim | ☐ |
 
-## Record
-- Viewer + version used (e.g., Firestorm 7.x): ______
-- Any login wall / cookie prompt / black screen: ______
-- Clicks needed before audio: ______
+## Record — RESULTS 2026-08-15: ALL 7 CHECKS PASS (Jon)
+- Viewer + version used: Firestorm 7.2.4.80712
+- Any login wall / cookie prompt / black screen: none using the room URL
+- Clicks needed before audio: 1 — Kosmi shows a big translucent play-button
+  overlay that darkens the screen until clicked (per watcher, per session)
 
 ## Interpretation
 - **All pass** → architecture A proceeds unchanged; start M1.
