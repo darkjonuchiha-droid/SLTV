@@ -21,6 +21,10 @@
   fine in SL's browser).
 - **YouTube channels always show small letterbox bars** — that's YouTube's own
   embedded player inside Kosmi; neither Kosmi nor SLTV can remove it.
+- **Pre-convert movies to WebM (VP8/VP9 + Vorbis) for free-tier Kosmi sharing**
+  — H.264 appears premium-gated. VLC: Media → Convert/Save → profile
+  "Video - VP80 + Vorbis (Webm)" (raise the video bitrate to ~3-6 Mb/s for
+  1080p), or ffmpeg: `-c:v libvpx -crf 10 -b:v 4M -c:a libvorbis`.
 
 ## Troubleshooting
 - "no HTTP-in URL available" → the parcel/region is out of URLs; the script
