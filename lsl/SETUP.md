@@ -15,6 +15,15 @@
    Touch it → the TV's menu opens. Give copies to guests AFTER granting them
    via TV touch → Guests → + Add.
 
+## Camera zoom ("Zoom into Media")
+- The TV menu's **Zoom** button locks your camera straight onto the screen,
+  framed to fit. Press **Zoom** again (or Esc) to release.
+- It only works while **wearing the remote** (touch it once so it pairs) —
+  Second Life only lets attachments steer your camera. Watchers without a
+  remote get a chat hint instead.
+- If zooming puts the camera beside or behind the TV, set `screen_axis` in the
+  config notecard to the direction the screen faces (+x/-x/+y/-y/+z/-z).
+
 ## Picture quality tips
 - **Best fullscreen: Kosmi local-file / screen sharing** — Kosmi's own player
   fills the room edge-to-edge (verified in-world; streams via WebRTC and works

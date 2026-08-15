@@ -11,8 +11,13 @@ integer MAX_CHANNELS = 24;
 // ---- config (from notecard) ----
 string  gPageBase;             // e.g. https://darkjonuchiha-droid.github.io/SLTV/web
 integer gFace = 4;
+string  gScreenAxis = "+y";    // direction the screen faces, in the prim's local frame
 list    gChanNames;
 list    gChanUrls;
+
+// ---- paired remotes (from HUD discovery) ----
+list    gHudWearers;           // avatar keys (as strings)
+list    gHudKeys;              // parallel: their HUD prim keys
 
 // ---- state ----
 integer gSeq = 1;
@@ -151,13 +156,39 @@ doCmd(key av, string cmd) {
     broadcast();
 }
 
+vector axisVec(string a) {
+    if (a == "+x") return <1.0, 0.0, 0.0>;
+    if (a == "-x") return <-1.0, 0.0, 0.0>;
+    if (a == "-y") return <0.0, -1.0, 0.0>;
+    if (a == "+z") return <0.0, 0.0, 1.0>;
+    if (a == "-z") return <0.0, 0.0, -1.0>;
+    return <0.0, 1.0, 0.0>; // +y default
+}
+
+doZoomFor(key av) {
+    integer i = llListFindList(gHudWearers, [(string)av]);
+    if (i == -1) {
+        llRegionSayTo(av, 0, "SLTV: wear the remote (touch it once to pair) to use camera zoom.");
+        return;
+    }
+    vector dims = llGetScale();
+    list sorted = llListSort([dims.x, dims.y, dims.z], 1, FALSE); // descending
+    float h = llList2Float(sorted, 1);        // 2nd-largest dimension ≈ screen height
+    float d = (h * 0.5) / 0.57735 * 1.25;     // tan(30°) half-FOV + 25% margin
+    vector n = axisVec(gScreenAxis) * llGetRot();
+    llRegionSayTo(llList2Key(gHudKeys, i), APP_CHANNEL, llList2Json(JSON_OBJECT, [
+        "cmd", "cam",
+        "p", (string)(llGetPos() + n * d),
+        "f", (string)llGetPos()]));
+}
+
 openDialog(key av, string ctx) {
     llListenRemove(gDlgListen);
     gDlgListen = llListen(DLG_CHANNEL, "", NULL_KEY, "");
     gDlgAvatar = av;
     gDlgCtx = ctx;
     if (ctx == "main") {
-        list btns = ["Power", "Fullscrn", "Ch +", "Ch -", "Channels"];
+        list btns = ["Power", "Fullscrn", "Ch +", "Ch -", "Channels", "Zoom"];
         if (av == llGetOwner()) btns += ["Guests", "Reload"];
         llDialog(av, "SLTV — " + llList2String(gChanNames, gCh), btns, DLG_CHANNEL);
     } else if (ctx == "channels") {
@@ -221,6 +252,7 @@ default
                     string v = llStringTrim(llGetSubString(data, eq + 1, -1), STRING_TRIM);
                     if (k == "page_base") gPageBase = v;
                     else if (k == "screen_face") gFace = (integer)v;
+                    else if (k == "screen_axis") gScreenAxis = v;
                     else if (k == "channel") {
                         integer bar = llSubStringIndex(v, "|");
                         if (bar > 0 && llGetListLength(gChanNames) < MAX_CHANNELS) {
@@ -245,6 +277,8 @@ default
         if (gCh >= llGetListLength(gChanNames)) gCh = 0;
         gConfigured = TRUE;
         llRequestSecureURL();
+        // TV (re)started: ask remotes in the region to re-pair
+        llRegionSay(APP_CHANNEL, llList2Json(JSON_OBJECT, ["cmd", "tvup"]));
     }
 
     http_request(key id, string method, string body) {
@@ -313,9 +347,13 @@ default
             key wearer = llGetOwnerKey(id);
             string cmd = llJsonGetValue(msg, ["cmd"]);
             if (cmd == "disc") {
-                if (isAuthorized(wearer))
+                if (isAuthorized(wearer)) {
+                    integer w = llListFindList(gHudWearers, [(string)wearer]);
+                    if (w == -1) { gHudWearers += [(string)wearer]; gHudKeys += [id]; }
+                    else gHudKeys = llListReplaceList(gHudKeys, [id], w, w);
                     llRegionSayTo(id, APP_CHANNEL, llList2Json(JSON_OBJECT,
                         ["cmd", "tv", "name", llGetObjectName()]));
+                }
                 return;
             }
             if (cmd == "menu") {
@@ -332,6 +370,7 @@ default
             else if (msg == "Fullscrn") doCmd(av, "fs");
             else if (msg == "Ch +") doCmd(av, "chup");
             else if (msg == "Ch -") doCmd(av, "chdn");
+            else if (msg == "Zoom") doZoomFor(av);
             else if (msg == "Channels") { openDialog(av, "channels"); return; }
             else if (msg == "Guests" && av == llGetOwner()) { openDialog(av, "guests"); return; }
             else if (msg == "Reload" && av == llGetOwner()) { gReload++; broadcast(); applyMedia(); }

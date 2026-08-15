@@ -96,6 +96,14 @@ GitHub Pages (static)                       Second Life region
   granted list (checked via `llDetectedKey` for touch, HUD-owner key for remote).
 
 ### 3. Remote HUD — `lsl/sltv-remote.lsl`
+
+**Camera zoom (added 2026-08-15):** the TV menu's Zoom button locks the
+wearer's camera onto the screen (TV computes framing from its scale, rotation
+and the notecard `screen_axis`; HUD applies it via `llSetCameraParams` —
+`PERMISSION_CONTROL_CAMERA` is auto-granted to attachments). Per-wearer, not
+synced. Decision: the viewer's native media bar (which carries a native
+zoom button) stays fully hidden (`PERMS_CONTROL NONE`) per Jon's choice —
+hover-popup-free screen outweighs native zoom for everyone.
 - One script, owner and guest behavior decided by TV's ACL at command time.
 - Buttons: Power, Fullscreen, Ch+, Ch−, channel list dialog. Pairing: HUD scans
   region for owner's SLTV prims (listen handshake on a fixed app channel derived

@@ -3,6 +3,10 @@
 page_base=https://darkjonuchiha-droid.github.io/SLTV/web
 # find yours with Edit -> Select Face on the screen side (Jon's 4x2.25x0.1 build: 2)
 screen_face=2
+# direction the screen faces in the prim's local frame (+x/-x/+y/-y/+z/-z).
+# Used by the camera Zoom button; if zooming puts the camera beside or behind
+# the TV, try the other values.
+screen_axis=+y
 # channels: channel=Name|https://kosmi-room-url   (max 24; first 12 reachable via menu)
 channel=Movies Night|https://app.kosmi.io/room/REPLACE-ME
 channel=Music Hall|https://app.kosmi.io/room/REPLACE-ME
