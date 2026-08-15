@@ -22,6 +22,17 @@ agents' transcripts and then verified/completed inline (curl, WebFetch, WebSearc
   ⇒ **We wrap Kosmi (iframe + our chrome); we cannot script the room from outside.**
 - Open: room persistence guarantees for accountless owners → recommend owner creates
   a (free) Kosmi account so room URLs are stable. Verify in-world.
+- **Bundle findings (2026-08-15, from app.kosmi.io/core.js):**
+  - `kioskMode` is a **realm setting** (server-side, from `realmInfo`), not a URL
+    param — hides sidebar/nav for realm rooms (realms = premium custom spaces).
+  - **TV mode**: route `tv/:room` (also `kosmi.tv` domain, Chromecast receiver).
+    Hides all chrome — but **metered**: `tvUsage` = 30 min/session, 5 h total for
+    non-premium viewers, then a `TVPaywall` modal. Anonymous SL watchers would
+    all hit it → **unusable for SLTV**. Verified `/tv/lobby` loads anonymously
+    with a live countdown.
+  - **`hideSidebarForNonAdmins`**: per-room setting; sidebar renders `null` for
+    non-admin viewers when enabled → the free, unmetered way to give SL watchers
+    a chrome-less media view. Owner keeps admin UI in their own browser.
 
 ## 2. Second Life shared media (MOAP) constraints
 
