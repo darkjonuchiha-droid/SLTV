@@ -1,0 +1,7 @@
+# SLTV configuration notecard. In-world, this notecard must be named: SLTV Config
+# page_base = where the web assets live (GitHub Pages), no trailing slash
+page_base=https://darkjonuchiha-droid.github.io/SLTV/web
+screen_face=4
+# channels: channel=Name|https://kosmi-room-url   (max 24; first 12 reachable via menu)
+channel=Movies Night|https://app.kosmi.io/room/REPLACE-ME
+channel=Music Hall|https://app.kosmi.io/room/REPLACE-ME
