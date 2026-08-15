@@ -1,7 +1,7 @@
 // tests/ui.test.js
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { buildDom, applyState } from '../web/js/ui.js';
+import { buildDom, applyState, handleWindowBlur } from '../web/js/ui.js';
 import { validateState } from '../web/js/state.js';
 
 const base = validateState({
@@ -76,5 +76,60 @@ describe('ui', () => {
     expect(refs.status.classList.contains('show')).toBe(true);
     refs.setStatus('ok');
     expect(refs.status.classList.contains('show')).toBe(false);
+  });
+});
+
+describe('pointer shield', () => {
+  let refs;
+  beforeEach(() => {
+    vi.useFakeTimers();
+    document.body.innerHTML = '<div id="app"></div>';
+    refs = buildDom(document.getElementById('app'));
+  });
+
+  it('exists and starts unarmed (grace window for the unmute click)', () => {
+    applyState(refs, null, base);
+    expect(refs.shield).toBeTruthy();
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+  });
+
+  it('arms when the watcher clicks into the iframe (window blur to frame)', () => {
+    applyState(refs, null, base);
+    handleWindowBlur(refs, refs.frame);
+    expect(refs.shield.classList.contains('armed')).toBe(true);
+  });
+
+  it('does not arm on blur to something other than the frame', () => {
+    applyState(refs, null, base);
+    handleWindowBlur(refs, document.body);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+  });
+
+  it('arms by itself after the grace period (autoplay-without-click case)', () => {
+    applyState(refs, null, base);
+    vi.advanceTimersByTime(60001);
+    expect(refs.shield.classList.contains('armed')).toBe(true);
+  });
+
+  it('re-opens the grace window on channel change and power-on', () => {
+    applyState(refs, null, base);
+    handleWindowBlur(refs, refs.frame);
+    expect(refs.shield.classList.contains('armed')).toBe(true);
+    const next = { ...base, seq: 2, ch: 1 };
+    applyState(refs, base, next);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+    handleWindowBlur(refs, refs.frame);
+    const off = { ...next, seq: 3, power: 0 };
+    applyState(refs, next, off);
+    const on = { ...off, seq: 4, power: 1 };
+    applyState(refs, off, on);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+  });
+
+  it('fullscreen toggle alone does NOT re-open the grace window', () => {
+    applyState(refs, null, base);
+    handleWindowBlur(refs, refs.frame);
+    applyState(refs, base, { ...base, seq: 2, fs: 1 });
+    expect(refs.shield.classList.contains('armed')).toBe(true);
   });
 });

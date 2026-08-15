@@ -112,7 +112,7 @@ applyMedia() {
         PRIM_MEDIA_CURRENT_URL, url,
         PRIM_MEDIA_HOME_URL, gCapUrl,
         PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_ANYONE,
-        PRIM_MEDIA_PERMS_CONTROL, PRIM_MEDIA_PERM_OWNER,
+        PRIM_MEDIA_PERMS_CONTROL, PRIM_MEDIA_PERM_NONE, // no floating SL media bar for anyone
         PRIM_MEDIA_WIDTH_PIXELS, 1280,
         PRIM_MEDIA_HEIGHT_PIXELS, 720]);
     llOwnerSay("SLTV: screen attached to " + url);

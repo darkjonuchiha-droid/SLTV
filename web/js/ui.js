@@ -2,12 +2,14 @@
 import { computeEffects } from './state.js';
 
 const OSD_MS = 4000;
+const UNMUTE_GRACE_MS = 60000;
 
 export function buildDom(root) {
   root.innerHTML =
     '<div id="tv" class="tv">' +
     '  <div class="bezel">' +
     '    <iframe id="frame" src="about:blank" allow="autoplay; fullscreen; encrypted-media; microphone; camera; display-capture"></iframe>' +
+    '    <div id="shield" class="shield"></div>' +
     '    <div id="idle" class="idle"><div class="idle-logo">SLTV</div><div class="idle-sub">powered off</div></div>' +
     '  </div>' +
     '  <div id="osd" class="osd"></div>' +
@@ -16,13 +18,33 @@ export function buildDom(root) {
   const refs = {
     root: root.querySelector('#tv'),
     frame: root.querySelector('#frame'),
+    shield: root.querySelector('#shield'),
     idle: root.querySelector('#idle'),
     osd: root.querySelector('#osd'),
     status: root.querySelector('#status'),
     osdTimer: 0,
+    shieldTimer: 0,
   };
   refs.setStatus = (s) => refs.status.classList.toggle('show', s !== 'ok');
+  // Clicking into the (cross-origin) iframe blurs the top window — that is the
+  // watcher's unmute click; afterwards the screen goes inert to hover/clicks.
+  window.addEventListener('blur', () => handleWindowBlur(refs, document.activeElement));
   return refs;
+}
+
+function armShield(refs) {
+  clearTimeout(refs.shieldTimer);
+  refs.shield.classList.add('armed');
+}
+
+function resetShield(refs) {
+  clearTimeout(refs.shieldTimer);
+  refs.shield.classList.remove('armed');
+  refs.shieldTimer = setTimeout(() => armShield(refs), UNMUTE_GRACE_MS);
+}
+
+export function handleWindowBlur(refs, activeEl) {
+  if (activeEl === refs.frame) armShield(refs);
 }
 
 function showOsd(refs, text) {
@@ -41,6 +63,7 @@ export function applyState(refs, prev, next) {
       const chan = next.channels[next.ch];
       refs.frame.src = chan.u;
       if (fx.channelChanged && prev) showOsd(refs, chan.n);
+      resetShield(refs); // fresh room content may need a fresh unmute click
     } else {
       refs.frame.src = 'about:blank'; // actually stops Kosmi audio
     }

@@ -25,3 +25,7 @@
   and may need to click the screen once.
 - After a region restart everyone's screen reloads once — that is by design.
 - Owner menu → Reload forces every watcher's page to reload (bumps a ?r= counter).
+- The screen ignores mouse hover/clicks ~60 s after each watcher's first click
+  (or channel change), so Kosmi's player controls can't pop up accidentally.
+  The SL floating media bar is disabled for everyone (PERMS_CONTROL = NONE);
+  use the TV menu / remote instead.
