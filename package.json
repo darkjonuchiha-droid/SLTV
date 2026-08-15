@@ -1,0 +1,14 @@
+{
+  "name": "sltv",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "mock": "node mock/mock-lp-server.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.0",
+    "vitest": "^3.0.0"
+  }
+}
