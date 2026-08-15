@@ -12,9 +12,7 @@ integer MAX_CHANNELS = 24;
 string  gPageBase;             // e.g. https://darkjonuchiha-droid.github.io/SLTV/web
 integer gFace = 2;             // default matches SLTV_Config.txt; notecard screen_face overrides
 string  gScreenAxis = "";      // optional override; empty = auto-derive from screen_face (box prims)
-vector  gScreenNorm;           // measured local screen normal (ZERO_VECTOR = not calibrated)
-integer gCalibrating;
-integer gCalibStart;
+vector  gScreenNorm;           // calibrated local screen normal (ZERO_VECTOR = not calibrated)
 list    gChanNames;
 list    gChanUrls;
 
@@ -181,12 +179,26 @@ vector faceNormal() {
     return <0.0, 0.0, -1.0>; // 5 bottom
 }
 
-endCalibration(integer ok) {
-    gCalibrating = FALSE;
-    llSetPrimMediaParams(gFace, [
-        PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_ANYONE,
-        PRIM_MEDIA_FIRST_CLICK_INTERACT, TRUE]);
-    if (!ok) llOwnerSay("SLTV: calibration cancelled.");
+calibrateFromPosition(key av) {
+    // A flat TV's screen faces along its thinnest local dimension; the owner
+    // standing in front tells us which of the two sides. No clicks on the
+    // media face needed (the viewer never reliably hands those to scripts).
+    vector avPos = llList2Vector(llGetObjectDetails(av, [OBJECT_POS]), 0);
+    vector dirL = llVecNorm((avPos - llGetPos()) / llGetRot());
+    vector s = llGetScale();
+    vector axis = <1.0, 0.0, 0.0>;
+    float m = s.x;
+    if (s.y < m) { m = s.y; axis = <0.0, 1.0, 0.0>; }
+    if (s.z < m) { axis = <0.0, 0.0, 1.0>; }
+    float d = dirL * axis;
+    if (llFabs(d) < 0.3) {
+        llRegionSayTo(av, 0, "SLTV: stand squarely in FRONT of the screen, then press Calibrate again.");
+        return;
+    }
+    if (d < 0.0) axis = -axis;
+    gScreenNorm = axis;
+    llLinksetDataWrite("sltv.norm", llList2Json(JSON_OBJECT, ["f", gFace, "n", (string)axis]));
+    llOwnerSay("SLTV: camera zoom calibrated — screen faces local " + (string)axis + ". Try the Zoom button.");
 }
 
 doZoomFor(key av) {
@@ -350,7 +362,6 @@ default
 
     timer() {
         if (gCapUrl == "" && gConfigured) llRequestSecureURL();
-        if (gCalibrating && llGetUnixTime() - gCalibStart > 120) endCalibration(FALSE);
         integer now = llGetUnixTime();
         integer i = llGetListLength(gPolls) - 3;
         for (; i >= 0; i -= 3) {
@@ -365,20 +376,6 @@ default
 
     touch_start(integer n) {
         key av = llDetectedKey(0);
-        if (gCalibrating && av == llGetOwner()) {
-            integer f = llDetectedTouchFace(0);
-            if (f == gFace) {
-                gScreenNorm = llDetectedTouchNormal(0) / llGetRot();
-                llLinksetDataWrite("sltv.norm", llList2Json(JSON_OBJECT,
-                    ["f", gFace, "n", (string)gScreenNorm]));
-                endCalibration(TRUE);
-                llOwnerSay("SLTV: camera zoom calibrated — measured the screen's real direction.");
-            } else {
-                llRegionSayTo(av, 0, "SLTV: that was face " + (string)f
-                    + ", not the screen (face " + (string)gFace + ") — click the screen.");
-            }
-            return;
-        }
         if (!gConfigured) {
             if (av == llGetOwner()) llOwnerSay("SLTV: not configured — check the '" + CONFIG_NC + "' notecard.");
             return;
@@ -420,16 +417,7 @@ default
             else if (msg == "Channels") { openDialog(av, "channels"); return; }
             else if (msg == "Guests" && av == llGetOwner()) { openDialog(av, "guests"); return; }
             else if (msg == "Reload" && av == llGetOwner()) { gReload++; broadcast(); applyMedia(); }
-            else if (msg == "Calibrate" && av == llGetOwner()) {
-                gCalibrating = TRUE;
-                gCalibStart = llGetUnixTime();
-                // disable media interaction entirely so the click is a plain touch
-                // (FIRST_CLICK_INTERACT alone only affects UNFOCUSED media)
-                llSetPrimMediaParams(gFace, [
-                    PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_NONE,
-                    PRIM_MEDIA_FIRST_CLICK_INTERACT, FALSE]);
-                llRegionSayTo(av, 0, "SLTV: now click the SCREEN face once to calibrate camera zoom (2 min).");
-            }
+            else if (msg == "Calibrate" && av == llGetOwner()) calibrateFromPosition(av);
         } else if (gDlgCtx == "channels") {
             doCmd(av, "ch:" + (string)((integer)msg - 1));
         } else if (gDlgCtx == "guests") {

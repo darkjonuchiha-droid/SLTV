@@ -23,8 +23,9 @@
   for **remote wearers** (touch the remote once so it pairs) — Second Life
   only lets attachments steer your camera. Press Zoom again (or Esc) to
   release.
-- If the menu Zoom aims at the wrong side: owner menu → **Calibrate** → click
-  the screen once. The TV measures the screen's true direction and stores it
+- If the menu Zoom aims at the wrong side: **stand squarely in front of the
+  screen**, then owner menu → **Calibrate**. The TV knows a flat screen faces
+  along its thinnest dimension; your position tells it which side. Stored
   permanently (survives resets; recalibrate if you change `screen_face`).
   Manual `screen_axis` in the notecard still works as a last-resort override.
 
