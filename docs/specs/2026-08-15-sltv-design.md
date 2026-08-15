@@ -19,7 +19,30 @@ approach question went unanswered; overturn freely. Research backing every claim
   grantable guests).
 - **Hosting**: static (GitHub Pages); free-tier services acceptable but not required.
 
-## Architecture A: static shell + Kosmi iframe + LSL HTTP-in push
+## ⚠ ARCHITECTURE AMENDMENT (2026-08-15, in-world finding)
+
+**A is superseded by A2 ("fragment bus").** In-world acceptance revealed that
+`llSetContentType` honors non-plain content types **only for the object
+owner** — every other viewer receives `text/plain` and renders raw HTML
+source. HTTP-in therefore cannot serve the page (or JSON, CORS-less) to
+watchers at all. A2 keeps the same shell/UI/state model but changes transport:
+
+- Media URL = `<pages>/web/index.html?r=<reload>#v=1&q=<seq>&p=&f=&l=&n=&u=`
+  — the **entire state rides in the URL fragment**, rewritten by
+  `llSetLinkMedia` (no sleep) on every command.
+- The page (served by GitHub Pages — real HTML for everyone) parses the
+  fragment on boot and on `hashchange`. Fragment-only changes are
+  same-document navigation in Chromium (verified locally; in-world smoothness
+  TBD — if the viewer reloads instead, the boot path handles it identically,
+  at the cost of a Kosmi rejoin per command).
+- Only the CURRENT channel travels (name+url); the channel list lives in LSL
+  dialogs. Query param `?r=` changes force a real reload (owner Reload).
+- Deleted entirely: HTTP-in server, long-poll client, heartbeats, cap-URL
+  lifecycle, region-restart re-request. The prim serves nothing.
+
+The section below documents superseded Architecture A for history.
+
+## Architecture A (superseded): static shell + Kosmi iframe + LSL HTTP-in push
 
 ```
 GitHub Pages (static)                       Second Life region

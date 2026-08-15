@@ -96,6 +96,14 @@ agents' transcripts and then verified/completed inline (curl, WebFetch, WebSearc
    distributable product, quotas/abuse become the owner's problem, one more account
    to manage. Keep the sync layer pluggable so this can slot in later if needed.
 
+**CRITICAL in-world finding (2026-08-15): `llSetContentType` non-plain types
+are honored only for the OBJECT OWNER'S viewer** — a second avatar loading the
+prim-served bootstrap saw raw HTML as text/plain. HTTP-in can never serve
+pages or CORS-less JSON to watchers. This killed Architecture A's serving leg;
+v1 moved to the fragment-bus (state in the media URL's #fragment, page on
+GitHub Pages). Fragment-only URL changes are same-document navigation in
+desktop Chromium (verified); in-world viewer behavior determines smoothness.
+
 **In-world confirmations (2026-08-15, Jon, Firestorm 7.2.4):** Kosmi local-file
 sharing (WebRTC-streamed) plays on the prim and fills the app area perfectly →
 WebRTC works in SL's CEF (risk 5.c resolved). YouTube playback letterboxes

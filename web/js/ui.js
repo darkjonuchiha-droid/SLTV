@@ -13,7 +13,7 @@ export function buildDom(root) {
     '    <div id="idle" class="idle"><div class="idle-logo">SLTV</div><div class="idle-sub">powered off</div></div>' +
     '  </div>' +
     '  <div id="osd" class="osd"></div>' +
-    '  <div id="status" class="status">reconnecting…</div>' +
+    '  <div id="status" class="status">no signal</div>' +
     '</div>';
   const refs = {
     root: root.querySelector('#tv'),

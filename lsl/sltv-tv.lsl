@@ -5,7 +5,6 @@
 integer APP_CHANNEL  = -77720011;
 integer DLG_CHANNEL  = -77720100;
 string  CONFIG_NC    = "SLTV Config";
-integer POLL_MAX_AGE = 15;     // seconds before a pending poll gets a heartbeat
 integer MAX_CHANNELS = 24;
 
 // ---- config (from notecard) ----
@@ -28,9 +27,7 @@ integer gFs = FALSE;
 integer gLock = TRUE;          // pointer shield up on all watchers' screens
 
 // ---- infra ----
-string  gCapUrl;
-integer gReload;               // bumps ?r= to force a reload for everyone
-list    gPolls;                // strided: [key id, integer since, integer unixtime]
+integer gReload;               // bumps ?r= to force a full reload for everyone
 list    gAclKeys;              // authorized guest avatar keys (as strings)
 list    gAclNames;             // parallel: names at grant time
 integer gNcLine;
@@ -47,19 +44,6 @@ list    gSensorNames;
 integer isAuthorized(key av) {
     if (av == llGetOwner()) return TRUE;
     return llListFindList(gAclKeys, [(string)av]) != -1;
-}
-
-string stateJson() {
-    list chans = [];
-    integer n = llGetListLength(gChanNames);
-    integer i;
-    for (i = 0; i < n; ++i) {
-        chans += llList2Json(JSON_OBJECT,
-            ["n", llList2String(gChanNames, i), "u", llList2String(gChanUrls, i)]);
-    }
-    return llList2Json(JSON_OBJECT, [
-        "seq", gSeq, "power", gPower, "ch", gCh, "fs", gFs, "lock", gLock,
-        "channels", llList2Json(JSON_ARRAY, chans)]);
 }
 
 persist() {
@@ -86,60 +70,50 @@ restore() {
     }
 }
 
-string bootstrapHtml() {
-    return "<!DOCTYPE html><html><head><meta charset=\"utf-8\">"
-        + "<meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
-        + "<link rel=\"stylesheet\" href=\"" + gPageBase + "/css/tv.css\"></head>"
-        + "<body><script type=\"module\" src=\"" + gPageBase + "/js/main.js\"></script>"
-        + "</body></html>";
-}
-
-string qsVal(string qs, string name) {
-    list parts = llParseString2List(qs, ["&"], []);
-    integer i;
-    integer n = llGetListLength(parts);
-    for (i = 0; i < n; ++i) {
-        list kv = llParseString2List(llList2String(parts, i), ["="], []);
-        if (llList2String(kv, 0) == name) return llList2String(kv, 1);
-    }
-    return "";
+// The whole TV state travels in the media URL's #fragment. The prim never
+// serves any content (llSetContentType HTML is honored ONLY for the owner —
+// other viewers get raw text/plain, confirmed in-world 2026-08-15).
+string buildMediaUrl() {
+    return gPageBase + "/index.html?r=" + (string)gReload
+        + "#v=1&q=" + (string)gSeq
+        + "&p=" + (string)gPower
+        + "&f=" + (string)gFs
+        + "&l=" + (string)gLock
+        + "&n=" + llEscapeURL(llList2String(gChanNames, gCh))
+        + "&u=" + llEscapeURL(llList2String(gChanUrls, gCh));
 }
 
 applyMedia() {
-    if (gCapUrl == "" || !gConfigured) return;
+    if (!gConfigured) return;
     if (gFace >= llGetNumberOfSides()) {
         llOwnerSay("SLTV: screen_face " + (string)gFace + " does not exist on this prim ("
             + (string)llGetNumberOfSides() + " faces). Fix the notecard.");
         return;
     }
-    string url = gCapUrl;
-    if (gReload > 0) url = gCapUrl + "?r=" + (string)gReload;
-    llSetPrimMediaParams(gFace, [
+    string url = buildMediaUrl();
+    if (llStringLength(url) > 1020) {
+        llOwnerSay("SLTV: channel '" + llList2String(gChanNames, gCh)
+            + "' makes the media URL too long — shorten the room URL or name.");
+        return;
+    }
+    // llSetLinkMedia: same params as llSetPrimMediaParams but no forced sleep
+    llSetLinkMedia(LINK_THIS, gFace, [
         PRIM_MEDIA_AUTO_PLAY, TRUE,
         PRIM_MEDIA_AUTO_SCALE, TRUE, // else the page sits unscaled in a power-of-2 texture (partial-face rendering)
         PRIM_MEDIA_AUTO_ZOOM, TRUE,  // native "Zoom into Media": clicking the screen frames the viewer's camera on it
         PRIM_MEDIA_FIRST_CLICK_INTERACT, TRUE,
         PRIM_MEDIA_CURRENT_URL, url,
-        PRIM_MEDIA_HOME_URL, gCapUrl,
+        PRIM_MEDIA_HOME_URL, url,
         PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_ANYONE,
         PRIM_MEDIA_PERMS_CONTROL, PRIM_MEDIA_PERM_NONE, // no floating SL media bar for anyone
         PRIM_MEDIA_WIDTH_PIXELS, 1280,
         PRIM_MEDIA_HEIGHT_PIXELS, 720]);
-    llOwnerSay("SLTV: screen attached to " + url);
 }
 
 broadcast() {
     gSeq++;
     persist();
-    string body = stateJson();
-    integer i;
-    integer n = llGetListLength(gPolls);
-    for (i = 0; i < n; i += 3) {
-        key id = llList2Key(gPolls, i);
-        llSetContentType(id, CONTENT_TYPE_JSON);
-        llHTTPResponse(id, 200, body);
-    }
-    gPolls = [];
+    applyMedia();
 }
 
 doCmd(key av, string cmd) {
@@ -273,8 +247,6 @@ default
         gConfigured = FALSE;
         gChanNames = [];
         gChanUrls = [];
-        gPolls = [];
-        llSetTimerEvent(5.0);
         if (llGetInventoryType(CONFIG_NC) != INVENTORY_NOTECARD) {
             llOwnerSay("SLTV: missing notecard '" + CONFIG_NC + "'.");
             return;
@@ -327,59 +299,11 @@ default
                 gScreenNorm = (vector)llJsonGetValue(nr, ["n"]);
             else llLinksetDataDelete("sltv.norm");
         }
-        llRequestSecureURL();
+        applyMedia();
+        llOwnerSay("SLTV: screen attached — " + (string)llGetListLength(gChanNames)
+            + " channel(s), state rides the media URL.");
         // TV (re)started: ask remotes in the region to re-pair
         llRegionSay(APP_CHANNEL, llList2Json(JSON_OBJECT, ["cmd", "tvup"]));
-    }
-
-    http_request(key id, string method, string body) {
-        if (method == URL_REQUEST_GRANTED) {
-            gCapUrl = body;
-            applyMedia();
-            return;
-        }
-        if (method == URL_REQUEST_DENIED) {
-            llOwnerSay("SLTV: no HTTP-in URL available (" + body + "); retrying in 60s.");
-            gCapUrl = "";
-            return; // timer retries
-        }
-        string qs = llGetHTTPHeader(id, "x-query-string");
-        string op = qsVal(qs, "op");
-        if (op == "") {
-            llSetContentType(id, CONTENT_TYPE_HTML);
-            llHTTPResponse(id, 200, bootstrapHtml());
-            return;
-        }
-        if (op == "state") {
-            llSetContentType(id, CONTENT_TYPE_JSON);
-            llHTTPResponse(id, 200, stateJson());
-            return;
-        }
-        if (op == "poll") {
-            integer since = (integer)qsVal(qs, "since");
-            if (since != gSeq) {
-                llSetContentType(id, CONTENT_TYPE_JSON);
-                llHTTPResponse(id, 200, stateJson());
-            } else {
-                gPolls += [id, since, llGetUnixTime()];
-            }
-            return;
-        }
-        llHTTPResponse(id, 400, "{}");
-    }
-
-    timer() {
-        if (gCapUrl == "" && gConfigured) llRequestSecureURL();
-        integer now = llGetUnixTime();
-        integer i = llGetListLength(gPolls) - 3;
-        for (; i >= 0; i -= 3) {
-            if (now - llList2Integer(gPolls, i + 2) >= POLL_MAX_AGE) {
-                key id = llList2Key(gPolls, i);
-                llSetContentType(id, CONTENT_TYPE_JSON);
-                llHTTPResponse(id, 200, llList2Json(JSON_OBJECT, ["seq", gSeq, "hb", 1]));
-                gPolls = llDeleteSubList(gPolls, i, i + 2);
-            }
-        }
     }
 
     touch_start(integer n) {
@@ -437,7 +361,7 @@ default
             else if (msg == "Zoom") doZoomFor(av);
             else if (msg == "Channels") { openDialog(av, "channels"); return; }
             else if (msg == "Guests" && av == llGetOwner()) { openDialog(av, "guests"); return; }
-            else if (msg == "Reload" && av == llGetOwner()) { gReload++; broadcast(); applyMedia(); }
+            else if (msg == "Reload" && av == llGetOwner()) { gReload++; broadcast(); } // ?r change = hard reload for all
             else if (msg == "Calibrate" && av == llGetOwner()) calibrateFromPosition(av);
             else if ((msg == "Unlock" || msg == "Lock") && av == llGetOwner()) {
                 doCmd(av, "lockt");
@@ -503,11 +427,8 @@ default
     }
 
     changed(integer what) {
-        if (what & CHANGED_REGION_START) {
-            if (gCapUrl != "") llReleaseURL(gCapUrl);
-            gCapUrl = "";
-            if (gConfigured) llRequestSecureURL();
-        }
+        // No region-restart handling needed: the media URL is object state and
+        // stays valid — viewers simply reload it when the region returns.
         if (what & CHANGED_INVENTORY) llResetScript(); // notecard edited → full re-read
     }
 }
