@@ -104,6 +104,11 @@ and the notecard `screen_axis`; HUD applies it via `llSetCameraParams` —
 synced. Decision: the viewer's native media bar (which carries a native
 zoom button) stays fully hidden (`PERMS_CONTROL NONE`) per Jon's choice —
 hover-popup-free screen outweighs native zoom for everyone.
+Refinements (same day): `PRIM_MEDIA_AUTO_ZOOM TRUE` gives every watcher the
+native click-to-zoom without any bar (Jon found it on the wiki); the menu
+Zoom's aim is calibrated by measurement — owner menu → Calibrate → click the
+screen → `llDetectedTouchNormal` stored in LinksetData (face-tagged), beating
+axis tables that break on cut/mesh prims.
 - One script, owner and guest behavior decided by TV's ACL at command time.
 - Buttons: Power, Fullscreen, Ch+, Ch−, channel list dialog. Pairing: HUD scans
   region for owner's SLTV prims (listen handshake on a fixed app channel derived
