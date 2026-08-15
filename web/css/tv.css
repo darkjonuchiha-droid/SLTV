@@ -1,0 +1,46 @@
+/* SLTV shell. Default = bezel view (~85% screen); .fullscreen = edge to edge.  */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+.tv { position: fixed; inset: 0; }
+
+.bezel {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #101418 0%, #05070a 100%);
+}
+.bezel iframe {
+  width: 85%; height: 85%;
+  border: 2px solid #1e2630; border-radius: 6px;
+  background: #000;
+  box-shadow: 0 0 40px rgba(0, 0, 0, .8);
+  transition: width .4s ease, height .4s ease, border-radius .4s ease;
+}
+.fullscreen .bezel iframe { width: 100%; height: 100%; border: 0; border-radius: 0; }
+
+.idle {
+  position: absolute; inset: 0; display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  color: #2c3a4a; background: #05070a; letter-spacing: .3em;
+}
+.idle-logo { font: 700 48px/1.2 system-ui, sans-serif; }
+.idle-sub { font: 400 14px/2 system-ui, sans-serif; }
+.off .idle { display: flex; }
+.off .bezel { visibility: hidden; }
+
+.osd {
+  position: absolute; top: 4%; left: 50%; transform: translateX(-50%);
+  padding: .5em 1.2em; border-radius: 4px;
+  background: rgba(10, 14, 20, .85); color: #dfe8f2;
+  font: 600 22px/1.4 system-ui, sans-serif;
+  opacity: 0; transition: opacity .3s ease; pointer-events: none;
+}
+.osd.show { opacity: 1; }
+
+.status {
+  position: absolute; bottom: 4%; left: 50%; transform: translateX(-50%);
+  padding: .4em 1em; border-radius: 4px;
+  background: rgba(120, 30, 30, .9); color: #fff;
+  font: 500 14px/1.4 system-ui, sans-serif;
+  opacity: 0; transition: opacity .3s ease; pointer-events: none;
+}
+.status.show { opacity: 1; }
