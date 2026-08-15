@@ -11,7 +11,7 @@ integer MAX_CHANNELS = 24;
 // ---- config (from notecard) ----
 string  gPageBase;             // e.g. https://darkjonuchiha-droid.github.io/SLTV/web
 integer gFace = 2;             // default matches SLTV_Config.txt; notecard screen_face overrides
-string  gScreenAxis = "+y";    // direction the screen faces, in the prim's local frame
+string  gScreenAxis = "";      // optional override; empty = auto-derive from screen_face (box prims)
 list    gChanNames;
 list    gChanUrls;
 
@@ -162,7 +162,18 @@ vector axisVec(string a) {
     if (a == "-y") return <0.0, -1.0, 0.0>;
     if (a == "+z") return <0.0, 0.0, 1.0>;
     if (a == "-z") return <0.0, 0.0, -1.0>;
-    return <0.0, 1.0, 0.0>; // +y default
+    return <0.0, 1.0, 0.0>; // +y
+}
+
+vector faceNormal() {
+    if (gScreenAxis != "") return axisVec(gScreenAxis); // explicit override wins
+    // standard box face -> outward local normal: 0 top, 1..4 sides, 5 bottom
+    if (gFace == 0) return <0.0, 0.0, 1.0>;
+    if (gFace == 1) return <0.0, -1.0, 0.0>;
+    if (gFace == 2) return <1.0, 0.0, 0.0>;
+    if (gFace == 3) return <0.0, 1.0, 0.0>;
+    if (gFace == 4) return <-1.0, 0.0, 0.0>;
+    return <0.0, 0.0, -1.0>; // 5 bottom
 }
 
 doZoomFor(key av) {
@@ -175,7 +186,7 @@ doZoomFor(key av) {
     list sorted = llListSort([dims.x, dims.y, dims.z], 1, FALSE); // descending
     float h = llList2Float(sorted, 1);        // 2nd-largest dimension ≈ screen height
     float d = (h * 0.5) / 0.57735 * 1.25;     // tan(30°) half-FOV + 25% margin
-    vector n = axisVec(gScreenAxis) * llGetRot();
+    vector n = faceNormal() * llGetRot();
     llRegionSayTo(llList2Key(gHudKeys, i), APP_CHANNEL, llList2Json(JSON_OBJECT, [
         "cmd", "cam",
         "p", (string)(llGetPos() + n * d),

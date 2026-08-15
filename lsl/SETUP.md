@@ -21,8 +21,10 @@
 - It only works while **wearing the remote** (touch it once so it pairs) —
   Second Life only lets attachments steer your camera. Watchers without a
   remote get a chat hint instead.
-- If zooming puts the camera beside or behind the TV, set `screen_axis` in the
-  config notecard to the direction the screen faces (+x/-x/+y/-y/+z/-z).
+- The camera aims at the configured `screen_face` automatically (box prims).
+  Only for mesh/odd builds where it misses: set `screen_axis` in the config
+  notecard to the direction the screen faces (+x/-x/+y/-y/+z/-z) — an explicit
+  `screen_axis` always wins over the automatic aim.
 
 ## Picture quality tips
 - **Best fullscreen: Kosmi local-file / screen sharing** — Kosmi's own player
