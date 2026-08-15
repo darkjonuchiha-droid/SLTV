@@ -15,6 +15,13 @@
    Touch it → the TV's menu opens. Give copies to guests AFTER granting them
    via TV touch → Guests → + Add.
 
+## Picture quality tips
+- **Best fullscreen: Kosmi local-file / screen sharing** — Kosmi's own player
+  fills the room edge-to-edge (verified in-world; streams via WebRTC and works
+  fine in SL's browser).
+- **YouTube channels always show small letterbox bars** — that's YouTube's own
+  embedded player inside Kosmi; neither Kosmi nor SLTV can remove it.
+
 ## Troubleshooting
 - "no HTTP-in URL available" → the parcel/region is out of URLs; the script
   retries every 60 s (the 5 s timer requests as soon as one frees up).

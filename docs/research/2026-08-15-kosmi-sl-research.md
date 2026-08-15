@@ -96,6 +96,11 @@ agents' transcripts and then verified/completed inline (curl, WebFetch, WebSearc
    distributable product, quotas/abuse become the owner's problem, one more account
    to manage. Keep the sync layer pluggable so this can slot in later if needed.
 
+**In-world confirmations (2026-08-15, Jon, Firestorm 7.2.4):** Kosmi local-file
+sharing (WebRTC-streamed) plays on the prim and fills the app area perfectly →
+WebRTC works in SL's CEF (risk 5.c resolved). YouTube playback letterboxes
+inside YouTube's own embedded player — inherent, not fixable by Kosmi or SLTV.
+
 ## 5. Key risks to test first in-world
 
 1. Kosmi room joins as an accountless guest inside SL's CEF (login wall? cookies?).
