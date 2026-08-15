@@ -183,7 +183,9 @@ vector faceNormal() {
 
 endCalibration(integer ok) {
     gCalibrating = FALSE;
-    llSetPrimMediaParams(gFace, [PRIM_MEDIA_FIRST_CLICK_INTERACT, TRUE]);
+    llSetPrimMediaParams(gFace, [
+        PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_ANYONE,
+        PRIM_MEDIA_FIRST_CLICK_INTERACT, TRUE]);
     if (!ok) llOwnerSay("SLTV: calibration cancelled.");
 }
 
@@ -421,7 +423,11 @@ default
             else if (msg == "Calibrate" && av == llGetOwner()) {
                 gCalibrating = TRUE;
                 gCalibStart = llGetUnixTime();
-                llSetPrimMediaParams(gFace, [PRIM_MEDIA_FIRST_CLICK_INTERACT, FALSE]);
+                // disable media interaction entirely so the click is a plain touch
+                // (FIRST_CLICK_INTERACT alone only affects UNFOCUSED media)
+                llSetPrimMediaParams(gFace, [
+                    PRIM_MEDIA_PERMS_INTERACT, PRIM_MEDIA_PERM_NONE,
+                    PRIM_MEDIA_FIRST_CLICK_INTERACT, FALSE]);
                 llRegionSayTo(av, 0, "SLTV: now click the SCREEN face once to calibrate camera zoom (2 min).");
             }
         } else if (gDlgCtx == "channels") {
