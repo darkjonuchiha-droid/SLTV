@@ -18,6 +18,9 @@
 ## Troubleshooting
 - "no HTTP-in URL available" → the parcel/region is out of URLs; the script
   retries every 60 s (the 5 s timer requests as soon as one frees up).
+- Kosmi shows "Unexpected Application Error … getDisplayMedia" → the page was
+  served over http instead of https. The script uses `llRequestSecureURL()`
+  precisely for this; make sure the prim runs the current script version.
 - Screen black for a guest → they must enable media (Preferences → Sound & Media)
   and may need to click the screen once.
 - After a region restart everyone's screen reloads once — that is by design.

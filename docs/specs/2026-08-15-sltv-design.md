@@ -75,7 +75,10 @@ GitHub Pages (static)                       Second Life region
 - Testing: Vitest for `state.js` and `sync.js` (mocked fetch/timers).
 
 ### 2. TV prim script — `lsl/sltv-tv.lsl`
-- Boot: read config notecard → `llRequestURL()` → set media on screen face:
+- Boot: read config notecard → `llRequestSecureURL()` (**must** be the https
+  variant: an http-served page is not a secure context, its iframes lose
+  `navigator.mediaDevices`, and Kosmi crashes on an unguarded `getDisplayMedia`
+  reference — found in-world 2026-08-15) → set media on screen face:
   `PRIM_MEDIA_CURRENT_URL/HOME_URL = <the HTTP-in cap URL itself>` (serves the
   bootstrap page; `page_base` from the notecard is baked into that HTML),
   `AUTO_PLAY TRUE`, `PERMS_INTERACT ANYONE` (guests may need one click to unmute),

@@ -243,7 +243,7 @@ default
         }
         if (gCh >= llGetListLength(gChanNames)) gCh = 0;
         gConfigured = TRUE;
-        llRequestURL();
+        llRequestSecureURL();
     }
 
     http_request(key id, string method, string body) {
@@ -283,7 +283,7 @@ default
     }
 
     timer() {
-        if (gCapUrl == "" && gConfigured) llRequestURL();
+        if (gCapUrl == "" && gConfigured) llRequestSecureURL();
         integer now = llGetUnixTime();
         integer i = llGetListLength(gPolls) - 3;
         for (; i >= 0; i -= 3) {
@@ -396,7 +396,7 @@ default
         if (what & CHANGED_REGION_START) {
             if (gCapUrl != "") llReleaseURL(gCapUrl);
             gCapUrl = "";
-            if (gConfigured) llRequestURL();
+            if (gConfigured) llRequestSecureURL();
         }
         if (what & CHANGED_INVENTORY) llResetScript(); // notecard edited → full re-read
     }
