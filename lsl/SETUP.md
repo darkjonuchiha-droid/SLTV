@@ -44,6 +44,14 @@
   "Video - VP80 + Vorbis (Webm)" (raise the video bitrate to ~3-6 Mb/s for
   1080p), or ffmpeg: `-c:v libvpx -crf 10 -b:v 4M -c:a libvorbis`.
 
+## Why am I a guest in my own room on the TV?
+Every watcher's SL viewer runs its own fresh embedded browser with no cookies —
+including yours — so Kosmi sees a new anonymous guest, not your account.
+That's by design: **manage the room from your normal desktop browser** (logged
+in as owner — queue media, moderate, start file shares; Kosmi syncs it to all
+watchers instantly), and treat the SL TV as the shared display, driven by its
+own remote. Don't try to log in on the prim.
+
 ## Troubleshooting
 - "no HTTP-in URL available" → the parcel/region is out of URLs; the script
   retries every 60 s (the 5 s timer requests as soon as one frees up).
