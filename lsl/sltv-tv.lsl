@@ -107,6 +107,7 @@ applyMedia() {
     if (gReload > 0) url = gCapUrl + "?r=" + (string)gReload;
     llSetPrimMediaParams(gFace, [
         PRIM_MEDIA_AUTO_PLAY, TRUE,
+        PRIM_MEDIA_AUTO_SCALE, TRUE, // else the page sits unscaled in a power-of-2 texture (partial-face rendering)
         PRIM_MEDIA_FIRST_CLICK_INTERACT, TRUE,
         PRIM_MEDIA_CURRENT_URL, url,
         PRIM_MEDIA_HOME_URL, gCapUrl,
