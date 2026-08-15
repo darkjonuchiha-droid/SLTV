@@ -10,7 +10,7 @@ integer MAX_CHANNELS = 24;
 
 // ---- config (from notecard) ----
 string  gPageBase;             // e.g. https://darkjonuchiha-droid.github.io/SLTV/web
-integer gFace = 4;
+integer gFace = 2;             // default matches SLTV_Config.txt; notecard screen_face overrides
 string  gScreenAxis = "+y";    // direction the screen faces, in the prim's local frame
 list    gChanNames;
 list    gChanUrls;
