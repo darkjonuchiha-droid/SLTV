@@ -403,6 +403,19 @@ default
                 if (!gConfigured) return;
                 if (isAuthorized(wearer)) openDialog(wearer, "main");
                 else llRegionSayTo(wearer, 0, "SLTV: you are not on this TV's control list.");
+                return;
+            }
+            if (cmd == "btn") { // direct button from the textured remote
+                if (!gConfigured) return;
+                if (!isAuthorized(wearer)) {
+                    llRegionSayTo(wearer, 0, "SLTV: you are not on this TV's control list.");
+                    return;
+                }
+                string b = llJsonGetValue(msg, ["b"]);
+                if (b == "power" || b == "fs" || b == "chup" || b == "chdn") doCmd(wearer, b);
+                else if (b == "zoom") doZoomFor(wearer);
+                else if (b == "channels") openDialog(wearer, "channels");
+                else if (b == "menu") openDialog(wearer, "main");
             }
             return;
         }

@@ -11,9 +11,13 @@
 4. Create a new script in the prim, paste `sltv-tv.lsl`, save.
 5. The owner chat should report: `SLTV: screen attached to https://…` — the
    screen face now shows the TV (enable media in your viewer!).
-6. Remote: rez a small prim, add `sltv-remote.lsl`, take it, attach as HUD.
-   Touch it → the TV's menu opens. Give copies to guests AFTER granting them
-   via TV touch → Guests → + Add.
+6. Remote: upload `assets/remote-texture.png` (L$10), rez a flat box sized
+   about 0.12 × 0.24 × 0.01, apply the texture to the front face, add
+   `sltv-remote.lsl`, take it, attach as HUD (e.g. Bottom Right; resize on
+   screen as you like). The buttons are live: Power, Fullscreen, CH −/+,
+   Zoom, Channels (opens the picker), Menu (full dialog — Guests/Reload/
+   Calibrate live there for the owner). Give copies to guests AFTER granting
+   them via TV touch → Guests → + Add.
 
 ## Camera zoom ("Zoom into Media")
 - **Anyone can zoom by clicking the screen** — the TV enables the viewer's

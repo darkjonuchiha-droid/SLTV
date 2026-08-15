@@ -19,6 +19,17 @@ discover() {
     llRegionSay(APP_CHANNEL, llList2Json(JSON_OBJECT, ["cmd", "disc"]));
 }
 
+// Maps a touch position on the remote texture to a button.
+// Rows must match tools/remote-texture.html (t runs bottom→top in LSL).
+string buttonAt(float s, float t) {
+    if (t > 0.82) return "power";
+    if (t > 0.64) return "fs";
+    if (t > 0.46) { if (s < 0.5) return "chdn"; return "chup"; }
+    if (t > 0.28) { if (s < 0.5) return "zoom"; return "channels"; }
+    if (t > 0.10) return "menu";
+    return ""; // logo area
+}
+
 applyCam() {
     llSetCameraParams([
         CAMERA_ACTIVE, 1,
@@ -67,8 +78,15 @@ default
 
     touch_start(integer n) {
         if (llDetectedKey(0) != llGetOwner()) return;
-        if (gTv == NULL_KEY) discover();
-        else llRegionSayTo(gTv, APP_CHANNEL, llList2Json(JSON_OBJECT, ["cmd", "menu"]));
+        if (gTv == NULL_KEY) { discover(); return; }
+        vector st = llDetectedTouchST(0);
+        if (st.x < 0.0) { // TOUCH_INVALID_TEXCOORD: fall back to the dialog menu
+            llRegionSayTo(gTv, APP_CHANNEL, llList2Json(JSON_OBJECT, ["cmd", "menu"]));
+            return;
+        }
+        string b = buttonAt(st.x, st.y);
+        if (b == "") return;
+        llRegionSayTo(gTv, APP_CHANNEL, llList2Json(JSON_OBJECT, ["cmd", "btn", "b", b]));
     }
 
     listen(integer chan, string name, key id, string msg) {

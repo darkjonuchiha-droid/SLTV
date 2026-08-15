@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>SLTV remote texture generator</title></head>
+<body style="background:#333">
+<canvas id="c" width="512" height="1024"></canvas>
+<script>
+// Draws the SLTV remote texture. Button rows must match buttonAt() in
+// lsl/sltv-remote.lsl: t(LSL, from bottom) = 1 - y/1024 (canvas, from top).
+//   power     t 0.82-1.00   y   0-184
+//   fullscrn  t 0.64-0.82   y 184-368
+//   ch-/ch+   t 0.46-0.64   y 368-552
+//   zoom/chan t 0.28-0.46   y 552-736
+//   menu      t 0.10-0.28   y 736-920
+//   logo      t 0.00-0.10   y 920-1024
+const cv = document.getElementById('c');
+const g = cv.getContext('2d');
+const W = 512, H = 1024, M = 26; // outer margin
+
+function rr(x, y, w, h, r) {
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+
+// body
+g.fillStyle = '#14181d';
+g.fillRect(0, 0, W, H);
+const bodyGrad = g.createLinearGradient(0, 0, W, 0);
+bodyGrad.addColorStop(0, '#1b2129');
+bodyGrad.addColorStop(.5, '#232a34');
+bodyGrad.addColorStop(1, '#1b2129');
+g.fillStyle = bodyGrad;
+rr(8, 8, W - 16, H - 16, 40);
+g.fill();
+g.strokeStyle = '#2f3945';
+g.lineWidth = 3;
+rr(8, 8, W - 16, H - 16, 40);
+g.stroke();
+
+function button(x, y, w, h, label, opts = {}) {
+  const grad = g.createLinearGradient(0, y, 0, y + h);
+  grad.addColorStop(0, opts.top || '#39434f');
+  grad.addColorStop(1, opts.bottom || '#252d37');
+  g.fillStyle = grad;
+  rr(x, y, w, h, 22);
+  g.fill();
+  g.strokeStyle = opts.border || '#4a5766';
+  g.lineWidth = 2.5;
+  rr(x, y, w, h, 22);
+  g.stroke();
+  g.fillStyle = opts.text || '#dfe8f2';
+  g.font = (opts.font || '700 44px') + ' system-ui, sans-serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText(label, x + w / 2, y + h / 2 + (opts.dy || 0));
+}
+
+const rows = [[0, 184], [184, 368], [368, 552], [552, 736], [736, 920]];
+const pad = 14; // inner padding within each row cell
+
+// power (red)
+button(M, rows[0][0] + M, W - 2 * M, rows[0][1] - rows[0][0] - M - pad,
+  '⏻  POWER', { top: '#7d2730', bottom: '#54181f', border: '#a03a45', text: '#ffd9dc' });
+// fullscreen
+button(M, rows[1][0] + pad, W - 2 * M, rows[1][1] - rows[1][0] - 2 * pad, '⛶  FULLSCREEN');
+// ch- / ch+
+const half = (W - 2 * M - pad) / 2;
+button(M, rows[2][0] + pad, half, rows[2][1] - rows[2][0] - 2 * pad, 'CH −', { font: '700 52px' });
+button(M + half + pad, rows[2][0] + pad, half, rows[2][1] - rows[2][0] - 2 * pad, 'CH +', { font: '700 52px' });
+// zoom / channels
+button(M, rows[3][0] + pad, half, rows[3][1] - rows[3][0] - 2 * pad, '🔍 ZOOM', { font: '700 38px' });
+button(M + half + pad, rows[3][0] + pad, half, rows[3][1] - rows[3][0] - 2 * pad, 'CHANNELS', { font: '700 34px' });
+// menu
+button(M, rows[4][0] + pad, W - 2 * M, rows[4][1] - rows[4][0] - 2 * pad, '☰  MENU',
+  { top: '#2c3a4a', bottom: '#1d2732', border: '#3d5068' });
+// logo
+g.fillStyle = '#5a6b7d';
+g.font = '800 46px system-ui, sans-serif';
+g.textAlign = 'center';
+g.fillText('S L T V', W / 2, 972);
+</script>
+</body>
+</html>
