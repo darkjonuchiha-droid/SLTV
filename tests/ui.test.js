@@ -132,4 +132,35 @@ describe('pointer shield', () => {
     applyState(refs, base, { ...base, seq: 2, fs: 1 });
     expect(refs.shield.classList.contains('armed')).toBe(true);
   });
+
+  it('unlock drops the shield and keeps it down (blur, timer, channel change)', () => {
+    applyState(refs, null, base);
+    handleWindowBlur(refs, refs.frame);
+    expect(refs.shield.classList.contains('armed')).toBe(true);
+    const unlocked = { ...base, seq: 2, lock: 0 };
+    applyState(refs, base, unlocked);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+    handleWindowBlur(refs, refs.frame);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+    vi.advanceTimersByTime(60001);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+    const chSwitch = { ...unlocked, seq: 3, ch: 1 };
+    applyState(refs, unlocked, chSwitch);
+    vi.advanceTimersByTime(60001);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+  });
+
+  it('re-locking arms the shield immediately (no grace window)', () => {
+    const unlocked = { ...base, lock: 0 };
+    applyState(refs, null, unlocked);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+    applyState(refs, unlocked, { ...unlocked, seq: 2, lock: 1 });
+    expect(refs.shield.classList.contains('armed')).toBe(true);
+  });
+
+  it('initial state already unlocked starts with the shield down', () => {
+    applyState(refs, null, { ...base, lock: 0 });
+    vi.advanceTimersByTime(60001);
+    expect(refs.shield.classList.contains('armed')).toBe(false);
+  });
 });

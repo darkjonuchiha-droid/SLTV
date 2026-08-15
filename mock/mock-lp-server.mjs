@@ -13,7 +13,7 @@ import process from 'node:process';
 const PORT = 8787;
 const PAGE_BASE = `http://localhost:${PORT}/web`;
 const state = {
-  seq: 1, power: 1, ch: 0, fs: 0,
+  seq: 1, power: 1, ch: 0, fs: 0, lock: 1,
   channels: [
     { n: 'Movies Night', u: 'https://app.kosmi.io/room/replace-me' },
     { n: 'Music Hall', u: 'https://app.kosmi.io/room/replace-me-too' },
@@ -59,6 +59,7 @@ const server = http.createServer(async (req, res) => {
       const doCmd = url.searchParams.get('do');
       if (doCmd === 'power') { state.power = state.power ? 0 : 1; broadcast(); }
       else if (doCmd === 'fs') { state.fs = state.fs ? 0 : 1; broadcast(); }
+      else if (doCmd === 'lock') { state.lock = state.lock ? 0 : 1; broadcast(); }
       else if (doCmd === 'ch') { state.ch = Math.min(Math.max(Number(url.searchParams.get('n')) || 0, 0), state.channels.length - 1); broadcast(); }
       return res.end(stateJson());
     }
@@ -87,6 +88,7 @@ process.stdin.on('data', (line) => {
   const [cmd, arg] = line.trim().split(/\s+/);
   if (cmd === 'power') { state.power = state.power ? 0 : 1; broadcast(); }
   else if (cmd === 'fs') { state.fs = state.fs ? 0 : 1; broadcast(); }
+  else if (cmd === 'lock') { state.lock = state.lock ? 0 : 1; broadcast(); }
   else if (cmd === 'ch') { state.ch = Math.min(Math.max(Number(arg) || 0, 0), state.channels.length - 1); broadcast(); }
   else console.log('[mock] commands: power | fs | ch <n>');
 });

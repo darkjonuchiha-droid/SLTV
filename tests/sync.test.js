@@ -2,7 +2,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createSync } from '../web/js/sync.js';
 
-const STATE1 = { seq: 1, power: 1, ch: 0, fs: 0, channels: [{ n: 'A', u: 'https://a.example/x' }] };
+const STATE1 = { seq: 1, power: 1, ch: 0, fs: 0, lock: 1, channels: [{ n: 'A', u: 'https://a.example/x' }] };
 const STATE2 = { ...STATE1, seq: 2, fs: 1 };
 
 function jsonResponse(obj) {

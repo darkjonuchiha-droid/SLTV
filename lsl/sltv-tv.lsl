@@ -25,6 +25,7 @@ integer gSeq = 1;
 integer gPower = TRUE;
 integer gCh = 0;
 integer gFs = FALSE;
+integer gLock = TRUE;          // pointer shield up on all watchers' screens
 
 // ---- infra ----
 string  gCapUrl;
@@ -57,13 +58,13 @@ string stateJson() {
             ["n", llList2String(gChanNames, i), "u", llList2String(gChanUrls, i)]);
     }
     return llList2Json(JSON_OBJECT, [
-        "seq", gSeq, "power", gPower, "ch", gCh, "fs", gFs,
+        "seq", gSeq, "power", gPower, "ch", gCh, "fs", gFs, "lock", gLock,
         "channels", llList2Json(JSON_ARRAY, chans)]);
 }
 
 persist() {
     llLinksetDataWrite("sltv.state", llList2Json(JSON_OBJECT,
-        ["power", gPower, "ch", gCh, "fs", gFs]));
+        ["power", gPower, "ch", gCh, "fs", gFs, "lock", gLock]));
     llLinksetDataWrite("sltv.acl", llList2Json(JSON_OBJECT,
         ["k", llList2Json(JSON_ARRAY, gAclKeys),
          "n", llList2Json(JSON_ARRAY, gAclNames)]));
@@ -75,6 +76,8 @@ restore() {
         gPower = (integer)llJsonGetValue(s, ["power"]);
         gCh    = (integer)llJsonGetValue(s, ["ch"]);
         gFs    = (integer)llJsonGetValue(s, ["fs"]);
+        string lk = llJsonGetValue(s, ["lock"]);
+        if (lk != JSON_INVALID) gLock = (integer)lk;
     }
     string a = llLinksetDataRead("sltv.acl");
     if (a != "") {
@@ -147,6 +150,7 @@ doCmd(key av, string cmd) {
     integer nCh = llGetListLength(gChanNames);
     if (cmd == "power")      gPower = !gPower;
     else if (cmd == "fs")    gFs = !gFs;
+    else if (cmd == "lockt") gLock = !gLock;
     else if (cmd == "chup")  gCh = (gCh + 1) % nCh;
     else if (cmd == "chdn")  gCh = (gCh + nCh - 1) % nCh;
     else if (llGetSubString(cmd, 0, 2) == "ch:") {
@@ -225,7 +229,11 @@ openDialog(key av, string ctx) {
     gDlgCtx = ctx;
     if (ctx == "main") {
         list btns = ["Power", "Fullscrn", "Ch +", "Ch -", "Channels", "Zoom"];
-        if (av == llGetOwner()) btns += ["Guests", "Reload", "Calibrate"];
+        if (av == llGetOwner()) {
+            string lockBtn = "Unlock";
+            if (!gLock) lockBtn = "Lock";
+            btns += ["Guests", "Reload", "Calibrate", lockBtn];
+        }
         llDialog(av, "SLTV — " + llList2String(gChanNames, gCh), btns, DLG_CHANNEL);
     } else if (ctx == "channels") {
         string legend = "Pick a channel:\n";
@@ -431,6 +439,11 @@ default
             else if (msg == "Guests" && av == llGetOwner()) { openDialog(av, "guests"); return; }
             else if (msg == "Reload" && av == llGetOwner()) { gReload++; broadcast(); applyMedia(); }
             else if (msg == "Calibrate" && av == llGetOwner()) calibrateFromPosition(av);
+            else if ((msg == "Unlock" || msg == "Lock") && av == llGetOwner()) {
+                doCmd(av, "lockt");
+                if (!gLock) llRegionSayTo(av, 0, "SLTV: screen unlocked — clicks now reach Kosmi on every watcher's screen. Lock it again after managing.");
+                else llRegionSayTo(av, 0, "SLTV: screen locked.");
+            }
         } else if (gDlgCtx == "channels") {
             doCmd(av, "ch:" + (string)((integer)msg - 1));
         } else if (gDlgCtx == "guests") {

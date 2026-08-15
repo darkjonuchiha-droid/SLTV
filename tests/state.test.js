@@ -13,7 +13,13 @@ const goodRaw = {
 describe('validateState', () => {
   it('accepts a well-formed state', () => {
     const s = validateState(goodRaw);
-    expect(s).toEqual(goodRaw);
+    expect(s).toEqual({ ...goodRaw, lock: 1 });
+  });
+  it('lock defaults to 1 (locked) when absent and normalizes to 0|1', () => {
+    expect(validateState(goodRaw).lock).toBe(1);
+    expect(validateState({ ...goodRaw, lock: 0 }).lock).toBe(0);
+    expect(validateState({ ...goodRaw, lock: 1 }).lock).toBe(1);
+    expect(validateState({ ...goodRaw, lock: 'x' }).lock).toBe(1);
   });
   it('rejects null, non-objects, missing seq, missing channels', () => {
     expect(validateState(null)).toBeNull();
@@ -43,10 +49,13 @@ describe('validateState', () => {
 describe('computeEffects', () => {
   const s = validateState(goodRaw);
   it('first state (prev=null) triggers everything', () => {
-    expect(computeEffects(null, s)).toEqual({ channelChanged: true, powerChanged: true, fsChanged: true });
+    expect(computeEffects(null, s)).toEqual({ channelChanged: true, powerChanged: true, fsChanged: true, lockChanged: true });
   });
   it('no change → no effects', () => {
-    expect(computeEffects(s, { ...s })).toEqual({ channelChanged: false, powerChanged: false, fsChanged: false });
+    expect(computeEffects(s, { ...s })).toEqual({ channelChanged: false, powerChanged: false, fsChanged: false, lockChanged: false });
+  });
+  it('detects lock changes', () => {
+    expect(computeEffects(s, { ...s, lock: 0 }).lockChanged).toBe(true);
   });
   it('detects channel index change and same-index url change', () => {
     expect(computeEffects(s, { ...s, ch: 0 }).channelChanged).toBe(true);

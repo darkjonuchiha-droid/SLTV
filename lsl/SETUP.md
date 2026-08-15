@@ -44,6 +44,15 @@
   "Video - VP80 + Vorbis (Webm)" (raise the video bitrate to ~3-6 Mb/s for
   1080p), or ffmpeg: `-c:v libvpx -crf 10 -b:v 4M -c:a libvorbis`.
 
+## Managing the room from inside SL (Interact mode)
+1. In your Kosmi room settings (desktop browser, as owner): allow guests to
+   control playback.
+2. In SL: TV Menu → **Unlock**. Every watcher's screen shield drops — clicks
+   now reach Kosmi, so you can pause/queue directly on the prim.
+3. When done: Menu → **Lock** (instant re-shield for everyone).
+Note: while unlocked, ANY watcher can click the room too (all SL watchers are
+equal guests to Kosmi). Unlock for private parties; keep public TVs locked.
+
 ## Why am I a guest in my own room on the TV?
 Every watcher's SL viewer runs its own fresh embedded browser with no cookies —
 including yours — so Kosmi sees a new anonymous guest, not your account.

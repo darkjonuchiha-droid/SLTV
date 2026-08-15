@@ -34,16 +34,23 @@ export function buildDom(root) {
 
 function armShield(refs) {
   clearTimeout(refs.shieldTimer);
+  if (refs.unlocked) return; // owner has Interact mode on: shield stays down
   refs.shield.classList.add('armed');
 }
 
-function resetShield(refs) {
+function lowerShield(refs) {
   clearTimeout(refs.shieldTimer);
   refs.shield.classList.remove('armed');
+}
+
+function resetShield(refs) {
+  lowerShield(refs);
+  if (refs.unlocked) return;
   refs.shieldTimer = setTimeout(() => armShield(refs), UNMUTE_GRACE_MS);
 }
 
 export function handleWindowBlur(refs, activeEl) {
+  if (refs.unlocked) return;
   if (activeEl === refs.frame) armShield(refs);
 }
 
@@ -58,6 +65,11 @@ export function applyState(refs, prev, next) {
   const fx = computeEffects(prev, next);
   refs.root.classList.toggle('off', !next.power);
   refs.root.classList.toggle('fullscreen', !!next.fs);
+  refs.unlocked = !next.lock;
+  if (fx.lockChanged && prev) {
+    if (next.lock) armShield(refs);  // re-lock: instant, no grace
+    else lowerShield(refs);
+  }
   if (fx.powerChanged || fx.channelChanged) {
     if (next.power) {
       const chan = next.channels[next.ch];
