@@ -59,12 +59,25 @@ GitHub Pages (static)                       Second Life region
     OSD toast.
 - Kosmi iframe: `allow="autoplay; fullscreen; encrypted-media; microphone; camera;
   display-capture"`.
-- Query contract (kept ≪ 1024 chars): `index.html?lp=<url-encoded HTTP-in URL>`.
+- **Same-origin serving (CORS correction, 2026-08-15)**: the media URL is the
+  prim's own HTTP-in URL, which serves a ~500-byte bootstrap HTML that loads css/js
+  from GitHub Pages (Pages sends `Access-Control-Allow-Origin: *`, so cross-origin
+  module scripts load fine). All `fetch()` calls target the page's own origin (the
+  cap URL) — no CORS anywhere. LSL cannot set CORS headers, so the originally
+  drafted "page on Pages fetches the cap URL" would have been blocked by the
+  browser. `web/index.html` exists only for local dev against the mock server.
+- **Fullscreen semantics**: we cannot trigger fullscreen *inside* Kosmi's
+  cross-origin iframe. Shell default renders a TV bezel/letterbox (~85% screen);
+  synced fullscreen removes it → Kosmi fills 100% of the face for everyone.
+  M2 experiment: Kosmi bundle contains `kioskMode`/`isBeingEmbedded` flags — if a
+  URL param hides room chrome, offer it as per-channel config (not the fs toggle,
+  since changing iframe src interrupts playback).
 - Testing: Vitest for `state.js` and `sync.js` (mocked fetch/timers).
 
 ### 2. TV prim script — `lsl/sltv-tv.lsl`
 - Boot: read config notecard → `llRequestURL()` → set media on screen face:
-  `PRIM_MEDIA_CURRENT_URL/HOME_URL = PAGE_BASE + "?lp=" + httpInUrl`,
+  `PRIM_MEDIA_CURRENT_URL/HOME_URL = <the HTTP-in cap URL itself>` (serves the
+  bootstrap page; `page_base` from the notecard is baked into that HTML),
   `AUTO_PLAY TRUE`, `PERMS_INTERACT ANYONE` (guests may need one click to unmute),
   `PERMS_CONTROL OWNER` (hide the viewer's nav bar for others).
 - HTTP-in routes (read-only; page never writes — no auth needed):
