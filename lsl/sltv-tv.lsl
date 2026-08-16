@@ -25,6 +25,8 @@ integer gPower = TRUE;
 integer gCh = 0;
 integer gFs = FALSE;
 integer gLock = TRUE;          // pointer shield up on all watchers' screens
+integer gLoginMode;            // TV shows Kosmi home (each viewer their OWN instance)
+integer gPrevLock;             // lock state to restore when leaving login mode
 
 // ---- infra ----
 integer gReload;               // bumps ?r= to force a full reload for everyone
@@ -47,8 +49,10 @@ integer isAuthorized(key av) {
 }
 
 persist() {
+    integer lockToSave = gLock;
+    if (gLoginMode) lockToSave = gPrevLock; // never persist the temporary unlock
     llLinksetDataWrite("sltv.state", llList2Json(JSON_OBJECT,
-        ["power", gPower, "ch", gCh, "fs", gFs, "lock", gLock]));
+        ["power", gPower, "ch", gCh, "fs", gFs, "lock", lockToSave]));
     llLinksetDataWrite("sltv.acl", llList2Json(JSON_OBJECT,
         ["k", llList2Json(JSON_ARRAY, gAclKeys),
          "n", llList2Json(JSON_ARRAY, gAclNames)]));
@@ -74,13 +78,16 @@ restore() {
 // serves any content (llSetContentType HTML is honored ONLY for the owner —
 // other viewers get raw text/plain, confirmed in-world 2026-08-15).
 string buildMediaUrl() {
+    string cn = llList2String(gChanNames, gCh);
+    string cu = llList2String(gChanUrls, gCh);
+    if (gLoginMode) { cn = "Kosmi Login"; cu = "https://app.kosmi.io/"; }
     return gPageBase + "/index.html?r=" + (string)gReload
         + "#v=1&q=" + (string)gSeq
         + "&p=" + (string)gPower
         + "&f=" + (string)gFs
         + "&l=" + (string)gLock
-        + "&n=" + llEscapeURL(llList2String(gChanNames, gCh))
-        + "&u=" + llEscapeURL(llList2String(gChanUrls, gCh));
+        + "&n=" + llEscapeURL(cn)
+        + "&u=" + llEscapeURL(cu);
 }
 
 applyMedia() {
@@ -116,10 +123,32 @@ broadcast() {
     applyMedia();
 }
 
+doLoginToggle(key av) {
+    if (!gLoginMode) {
+        gLoginMode = TRUE;
+        gPrevLock = gLock;
+        gLock = FALSE; // typing needs the shield down
+        broadcast();
+        llRegionSayTo(av, 0, "SLTV: Kosmi login on the TV (everyone sees their OWN page — typing stays private). Click the screen, log in, then press LOG IN again to return.");
+    } else {
+        gLoginMode = FALSE;
+        gLock = gPrevLock;
+        broadcast();
+        llRegionSayTo(av, 0, "SLTV: back to the channel.");
+    }
+}
+
 doCmd(key av, string cmd) {
     if (!isAuthorized(av)) {
         llRegionSayTo(av, 0, "SLTV: you are not on this TV's control list.");
         return;
+    }
+    // channel/power moves implicitly leave login mode and restore the lock
+    if (gLoginMode) {
+        if (cmd == "power" || cmd == "chup" || cmd == "chdn" || llGetSubString(cmd, 0, 2) == "ch:") {
+            gLoginMode = FALSE;
+            gLock = gPrevLock;
+        }
     }
     integer nCh = llGetListLength(gChanNames);
     if (cmd == "power")      gPower = !gPower;
@@ -368,9 +397,8 @@ default
                 else if (b == "channels") openDialog(wearer, "channels");
                 else if (b == "menu") openDialog(wearer, "main");
                 else if (b == "login") {
-                    // Viewer's BUILT-IN browser shares cookies with the screen:
-                    // logging in there logs the TV in too (after a Reload).
-                    llLoadURL(wearer, "Log into Kosmi here. If this opens the viewer's BUILT-IN browser, the login carries over to the TV screen — afterwards use Menu > Reload.", "https://app.kosmi.io/");
+                    if (wearer == llGetOwner()) doLoginToggle(wearer);
+                    else llRegionSayTo(wearer, 0, "SLTV: only the owner can switch the TV to the login screen.");
                 }
             }
             return;
