@@ -31,6 +31,18 @@ Collected during the v1/v1.1 build. Ordered roughly by value-per-effort.
   stack, parallel to the TV. Its open ws sync protocol is technically
   speakable by our shell, but the prim still needs direct stream URLs, so it
   reduces to the R2+native-player plan with added fragility.
+- **Stremio SDK / addon API as a source for the native player**: SDK is for
+  BUILDING addons (wrong tool). The addon API IS queryable cross-origin from
+  our shell (GET /stream/{type}/{id}.json). Returns torrents (unplayable in a
+  browser without WebTorrent — no fan-out) OR, with PAID debrid, a direct
+  HTTPS URL our native player could use. Catches that push it back to R2:
+  (a) auto-resolve needs a debrid key → exposed to all watchers client-side,
+  or a resolver backend server-side (infra/keys we avoid); (b) debrid links
+  are time-limited + account/IP-bound (channels rot, may not play for
+  watchers); (c) usually MKV/HEVC → CEF <video> can't play → convert anyway.
+  Only no-backend version = owner manually pastes a debrid direct URL as a
+  video: channel = the existing "paste a URL" path + expiry pain. Legal:
+  Torrentio surfaces pirated content.
 - **Google Drive / Dropbox as video hosting**: >100MB virus-scan
   interstitial, expiring signed URLs, download quotas, unreliable Range
   support — file-sharing services engineer against streaming. Object storage
