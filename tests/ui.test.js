@@ -165,60 +165,6 @@ describe('pointer shield', () => {
   });
 });
 
-describe('account panel (per-viewer login)', () => {
-  let refs;
-  beforeEach(() => {
-    vi.useFakeTimers();
-    localStorage.setItem('sltv.guided', '1'); // keep the guide out of the way
-    document.body.innerHTML = '<div id="app"></div>';
-    refs = buildDom(document.getElementById('app'));
-  });
-
-  it('⚙ toggles the panel', () => {
-    refs.acct.dispatchEvent(new Event('click'));
-    expect(refs.acctPanel.classList.contains('show')).toBe(true);
-    refs.acct.dispatchEvent(new Event('click'));
-    expect(refs.acctPanel.classList.contains('show')).toBe(false);
-  });
-
-  it('Kosmi Home navigates only this instance and drops the local shield even while locked', () => {
-    applyState(refs, null, base);
-    handleWindowBlur(refs, refs.frame);
-    expect(refs.shield.classList.contains('armed')).toBe(true);
-    refs.acct.dispatchEvent(new Event('click'));
-    refs.acctHome.dispatchEvent(new Event('click'));
-    expect(refs.frame.src).toBe('https://app.kosmi.io/');
-    expect(refs.shield.classList.contains('armed')).toBe(false);
-    handleWindowBlur(refs, refs.frame); // clicks during account mode must not re-arm
-    expect(refs.shield.classList.contains('armed')).toBe(false);
-  });
-
-  it('Back to TV restores the synced channel and re-arms when locked', () => {
-    applyState(refs, null, base);
-    refs.acct.dispatchEvent(new Event('click'));
-    refs.acctHome.dispatchEvent(new Event('click'));
-    refs.acctBack.dispatchEvent(new Event('click'));
-    expect(refs.frame.src).toBe('https://app.kosmi.io/room/aaa');
-    expect(refs.shield.classList.contains('armed')).toBe(true);
-  });
-
-  it('a synced channel change yanks the viewer back from account mode', () => {
-    applyState(refs, null, base);
-    refs.acct.dispatchEvent(new Event('click'));
-    refs.acctHome.dispatchEvent(new Event('click'));
-    applyState(refs, base, { ...base, seq: 2, ch: 1 });
-    expect(refs.frame.src).toBe('https://app.kosmi.io/room/bbb');
-  });
-
-  it('account mode auto-expires back to the TV after 5 minutes', () => {
-    applyState(refs, null, base);
-    refs.acct.dispatchEvent(new Event('click'));
-    refs.acctHome.dispatchEvent(new Event('click'));
-    vi.advanceTimersByTime(300001);
-    expect(refs.frame.src).toBe('https://app.kosmi.io/room/aaa');
-  });
-});
-
 describe('first-visit guide', () => {
   beforeEach(() => {
     vi.useFakeTimers();

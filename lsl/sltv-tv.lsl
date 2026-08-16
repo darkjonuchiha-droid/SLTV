@@ -367,6 +367,11 @@ default
                 else if (b == "zoom") doZoomFor(wearer);
                 else if (b == "channels") openDialog(wearer, "channels");
                 else if (b == "menu") openDialog(wearer, "main");
+                else if (b == "login") {
+                    // Viewer's BUILT-IN browser shares cookies with the screen:
+                    // logging in there logs the TV in too (after a Reload).
+                    llLoadURL(wearer, "Log into Kosmi here. If this opens the viewer's BUILT-IN browser, the login carries over to the TV screen — afterwards use Menu > Reload.", "https://app.kosmi.io/");
+                }
             }
             return;
         }

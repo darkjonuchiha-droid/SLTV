@@ -80,10 +80,14 @@ button(M, rows[4][0] + pad, half, rows[4][1] - rows[4][0] - 2 * pad, '☰ MENU',
 button(M + half + pad, rows[4][0] + pad, half, rows[4][1] - rows[4][0] - 2 * pad, '🔒 LOCK',
   { top: '#2c3a4a', bottom: '#1d2732', border: '#3d5068', font: '700 34px' });
 // logo
+// bottom strip: LOG IN (left half, maps to btn "login") + wordmark (right)
+button(M, 928, (W - 2 * M - pad) / 2, 72, '⎆ LOG IN',
+  { top: '#26313d', bottom: '#1a222c', border: '#3a4a5a', font: '700 26px', text: '#a9bccf' });
 g.fillStyle = '#5a6b7d';
-g.font = '800 46px system-ui, sans-serif';
+g.font = '800 40px system-ui, sans-serif';
 g.textAlign = 'center';
-g.fillText('S L T V', W / 2, 972);
+g.textBaseline = 'middle';
+g.fillText('S L T V', W * 0.735, 966);
 </script>
 </body>
 </html>

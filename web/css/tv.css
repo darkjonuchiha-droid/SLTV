@@ -66,28 +66,3 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
   background: #2c3a4a; color: #dfe8f2; font: 600 14px system-ui, sans-serif; cursor: pointer;
 }
 .guide-card button:hover { background: #39434f; }
-
-/* Per-viewer account button + panel (above the shield; always clickable). */
-.acct {
-  position: absolute; right: 1.2%; bottom: 3%;
-  width: 42px; height: 42px; border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  background: rgba(10, 14, 20, .6); color: #8fa3b8;
-  border: 1px solid rgba(74, 87, 102, .5);
-  font-size: 22px; cursor: pointer; user-select: none;
-  opacity: .5; transition: opacity .2s ease;
-}
-.acct:hover { opacity: 1; }
-.acct-panel {
-  position: absolute; right: 1.2%; bottom: 10%;
-  display: none; flex-direction: column; gap: .5em;
-  padding: .8em; border-radius: 8px; border: 1px solid #3d5068;
-  background: rgba(10, 14, 20, .92);
-}
-.acct-panel.show { display: flex; }
-.acct-panel button {
-  padding: .5em 1.2em; border-radius: 5px; border: 1px solid #4a5766;
-  background: #2c3a4a; color: #dfe8f2; font: 600 13px system-ui, sans-serif;
-  cursor: pointer; white-space: nowrap;
-}
-.acct-panel button:hover { background: #39434f; }
