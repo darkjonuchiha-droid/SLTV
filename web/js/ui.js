@@ -15,6 +15,7 @@ export function buildDom(root) {
     '    <div id="idle" class="idle"><div class="idle-logo">SLTV</div><div class="idle-sub">powered off</div></div>' +
     '  </div>' +
     '  <div id="osd" class="osd"></div>' +
+    '  <div id="navtoggle" class="navtoggle">☰ menu</div>' +
     '  <div id="status" class="status">no signal</div>' +
     '  <div id="guide" class="guide"><div class="guide-card">' +
     '<b>Welcome to SLTV</b>' +
@@ -35,6 +36,8 @@ export function buildDom(root) {
   };
   refs.guide = root.querySelector('#guide');
   refs.guideOk = root.querySelector('#guide-ok');
+  refs.navToggle = root.querySelector('#navtoggle');
+  refs.navToggle.addEventListener('click', () => refs.root.classList.toggle('navshow'));
   refs.setStatus = (s) => refs.status.classList.toggle('show', s !== 'ok');
   // Clicking into the (cross-origin) iframe blurs the top window — that is the
   // watcher's unmute click; afterwards the screen goes inert to hover/clicks.
@@ -102,6 +105,7 @@ export function applyState(refs, prev, next) {
       // Rooms always get the full picture.
       refs.root.classList.toggle('login',
         chan.u.startsWith('https://app.kosmi.io/') && !chan.u.includes('/room/'));
+      refs.root.classList.remove('navshow'); // crop returns whenever the page changes
       if (fx.channelChanged && prev) showOsd(refs, chan.n);
       resetShield(refs); // fresh room content may need a fresh unmute click
     } else {

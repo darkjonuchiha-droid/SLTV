@@ -71,6 +71,20 @@ describe('ui', () => {
     expect(refs.root.classList.contains('fullscreen')).toBe(false);
   });
 
+  it('login mode starts nav-cropped; the chip toggles it; leaving resets it', () => {
+    const login = { ...base, seq: 2, channels: [{ n: 'Kosmi Login', u: 'https://app.kosmi.io/' }], ch: 0 };
+    applyState(refs, null, login);
+    expect(refs.root.classList.contains('login')).toBe(true);
+    expect(refs.root.classList.contains('navshow')).toBe(false);
+    refs.navToggle.dispatchEvent(new Event('click'));
+    expect(refs.root.classList.contains('navshow')).toBe(true);
+    refs.navToggle.dispatchEvent(new Event('click'));
+    expect(refs.root.classList.contains('navshow')).toBe(false);
+    refs.navToggle.dispatchEvent(new Event('click')); // leave it shown...
+    applyState(refs, login, { ...base, seq: 3 });     // ...then exit login mode
+    expect(refs.root.classList.contains('navshow')).toBe(false);
+  });
+
   it('Kosmi non-room pages get the narrow-column class; rooms never do', () => {
     applyState(refs, null, base); // base channels are /room/ URLs
     expect(refs.root.classList.contains('login')).toBe(false);
