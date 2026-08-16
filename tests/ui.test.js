@@ -71,13 +71,16 @@ describe('ui', () => {
     expect(refs.root.classList.contains('fullscreen')).toBe(false);
   });
 
-  it('login-mode channel gets the narrow-column class (Kosmi mobile layout <1000px)', () => {
-    applyState(refs, null, base);
+  it('Kosmi non-room pages get the narrow-column class; rooms never do', () => {
+    applyState(refs, null, base); // base channels are /room/ URLs
     expect(refs.root.classList.contains('login')).toBe(false);
     const login = { ...base, seq: 2, channels: [{ n: 'Kosmi Login', u: 'https://app.kosmi.io/' }], ch: 0 };
     applyState(refs, base, login);
     expect(refs.root.classList.contains('login')).toBe(true);
-    applyState(refs, login, { ...base, seq: 3 });
+    const other = { ...base, seq: 3, channels: [{ n: 'X', u: 'https://app.kosmi.io/payment' }], ch: 0 };
+    applyState(refs, login, other);
+    expect(refs.root.classList.contains('login')).toBe(true);
+    applyState(refs, other, { ...base, seq: 4 });
     expect(refs.root.classList.contains('login')).toBe(false);
   });
 
