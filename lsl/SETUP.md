@@ -109,6 +109,12 @@ never touches the prim. For quick full-account tasks, **Open Web** jumps your
 desktop browser to the current room.
 
 ## Troubleshooting
+- **Shared a file in Kosmi, video plays but NO audio** → the file is an MP4
+  with MP3 audio (browsers want AAC in MP4). Verify with
+  `ffprobe -v error -select_streams a -show_entries stream=codec_name file.mp4`
+  and fix in ~1 minute without touching the video:
+  `ffmpeg -i in.mp4 -map 0:v:0 -map 0:a:0 -c:v copy -c:a aac -b:a 160k -movflags +faststart out.mp4`
+  (Seen 2026-08-15 with both House of the Dragon files.)
 - Web updates (new page features) reach screens via Menu → **Reload** — but
   browsers may cache the page's files for up to ~10 minutes, so a Reload right
   after an update can serve the old version. Wait a few minutes and Reload
