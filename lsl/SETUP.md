@@ -92,6 +92,10 @@ never touches the prim. For quick full-account tasks, **Open Web** jumps your
 desktop browser to the current room.
 
 ## Troubleshooting
+- Web updates (new page features) reach screens via Menu → **Reload** — but
+  browsers may cache the page's files for up to ~10 minutes, so a Reload right
+  after an update can serve the old version. Wait a few minutes and Reload
+  again.
 - "no signal" on the screen → the media URL's state fragment is missing or
   invalid — usually a channel URL so long the media URL exceeds SL's 1024-char
   limit (the owner gets a chat warning), or the page was opened outside SL.
