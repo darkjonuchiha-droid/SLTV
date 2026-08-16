@@ -5,6 +5,8 @@ const OSD_MS = 4000;
 const UNMUTE_GRACE_MS = 60000;
 const GUIDE_MS = 30000;
 const GUIDE_KEY = 'sltv.guided';
+const ACCT_MS = 300000; // account mode auto-returns to the TV after 5 min
+const KOSMI_HOME = 'https://app.kosmi.io/';
 
 export function buildDom(root) {
   root.innerHTML =
@@ -22,6 +24,12 @@ export function buildDom(root) {
     '<span>🔊 Volume: your viewer’s media slider (only affects you).</span>' +
     '<button id="guide-ok">Got it</button>' +
     '</div></div>' +
+    '  <div id="acct" class="acct" title="Account">⚙</div>' +
+    '  <div id="acct-panel" class="acct-panel">' +
+    '<button id="acct-home">Kosmi Home — log in / out</button>' +
+    '<button id="acct-back">Back to TV</button>' +
+    '<button id="acct-reload">Reload screen</button>' +
+    '</div>' +
     '</div>';
   const refs = {
     root: root.querySelector('#tv'),
@@ -35,7 +43,22 @@ export function buildDom(root) {
   };
   refs.guide = root.querySelector('#guide');
   refs.guideOk = root.querySelector('#guide-ok');
+  refs.acct = root.querySelector('#acct');
+  refs.acctPanel = root.querySelector('#acct-panel');
+  refs.acctHome = root.querySelector('#acct-home');
+  refs.acctBack = root.querySelector('#acct-back');
+  refs.acctReload = root.querySelector('#acct-reload');
+  refs.override = false;   // account mode: this viewer is off the synced channel
+  refs.lastState = null;
+  refs.acctTimer = 0;
   refs.setStatus = (s) => refs.status.classList.toggle('show', s !== 'ok');
+
+  // Per-viewer account panel: login/logout are cookie operations of THIS
+  // instance only, so they must never ride the synced bus.
+  refs.acct.addEventListener('click', () => refs.acctPanel.classList.toggle('show'));
+  refs.acctHome.addEventListener('click', () => enterAccountMode(refs));
+  refs.acctBack.addEventListener('click', () => exitAccountMode(refs));
+  refs.acctReload.addEventListener('click', () => location.reload());
   // Clicking into the (cross-origin) iframe blurs the top window — that is the
   // watcher's unmute click; afterwards the screen goes inert to hover/clicks.
   window.addEventListener('blur', () => handleWindowBlur(refs, document.activeElement));
@@ -57,8 +80,29 @@ export function buildDom(root) {
 
 function armShield(refs) {
   clearTimeout(refs.shieldTimer);
-  if (refs.unlocked) return; // owner has Interact mode on: shield stays down
+  if (refs.unlocked || refs.override) return; // interact mode / account mode: stays down
   refs.shield.classList.add('armed');
+}
+
+function enterAccountMode(refs) {
+  refs.override = true;
+  refs.acctPanel.classList.remove('show');
+  refs.frame.src = KOSMI_HOME;
+  lowerShield(refs);
+  clearTimeout(refs.acctTimer);
+  refs.acctTimer = setTimeout(() => exitAccountMode(refs), ACCT_MS);
+}
+
+function exitAccountMode(refs) {
+  refs.acctPanel.classList.remove('show');
+  if (!refs.override) return;
+  refs.override = false;
+  clearTimeout(refs.acctTimer);
+  const st = refs.lastState;
+  if (st) {
+    refs.frame.src = st.power ? st.channels[st.ch].u : 'about:blank';
+  }
+  armShield(refs); // no-ops if the TV is unlocked
 }
 
 function lowerShield(refs) {
@@ -68,12 +112,12 @@ function lowerShield(refs) {
 
 function resetShield(refs) {
   lowerShield(refs);
-  if (refs.unlocked) return;
+  if (refs.unlocked || refs.override) return;
   refs.shieldTimer = setTimeout(() => armShield(refs), UNMUTE_GRACE_MS);
 }
 
 export function handleWindowBlur(refs, activeEl) {
-  if (refs.unlocked) return;
+  if (refs.unlocked || refs.override) return;
   if (activeEl === refs.frame) armShield(refs);
 }
 
@@ -86,9 +130,16 @@ function showOsd(refs, text) {
 
 export function applyState(refs, prev, next) {
   const fx = computeEffects(prev, next);
+  refs.lastState = next;
   refs.root.classList.toggle('off', !next.power);
   refs.root.classList.toggle('fullscreen', !!next.fs);
   refs.unlocked = !next.lock;
+  if ((fx.powerChanged || fx.channelChanged) && refs.override) {
+    // a synced change herds account-mode viewers back to the TV
+    refs.override = false;
+    clearTimeout(refs.acctTimer);
+    refs.acctPanel.classList.remove('show');
+  }
   if (fx.lockChanged && prev) {
     if (next.lock) armShield(refs);  // re-lock: instant, no grace
     else lowerShield(refs);

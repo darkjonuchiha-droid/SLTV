@@ -76,11 +76,15 @@ stick. The fix is giving the TV its own *registered* identity:
    its own unique password — never your main account's).
 2. From your desktop (main account, room owner): **promote the TV account to
    admin** in your room. Roles stick to registered users — this is one-time.
-3. In SL: Menu → **Unlock**, click the screen, log into Kosmi *on the prim*
-   with the TV account. The viewer's cookie store keeps the session — it
-   survives channel switches, power cycles, and normally full SL relogs
-   (verified in-world 2026-08-15). One login per machine/viewer install.
-4. **Lock** the screen again.
+3. In SL: click the small **⚙** in the screen's bottom-right corner →
+   **Kosmi Home**. Your own screen (nobody else's) goes to Kosmi with its
+   login controls, and clicks work there even while the TV is locked. Log in
+   with the TV account, then **⚙ → Back to TV**. The viewer's cookie store
+   keeps the session — it survives channel switches, power cycles, and
+   normally full SL relogs (verified in-world 2026-08-15). One login per
+   machine/viewer install. (⚙ also offers **Reload screen** to fix a stuck
+   page; account mode auto-returns to the TV after 5 minutes, and any channel
+   change pulls you back too. Log out / switch accounts the same way.)
 Result: the TV is a persistent, admin-capable identity in your room — no
 desktop ritual. If it's ever logged out (viewer cache cleared), repeat step 3.
 Security note: the TV account holds only room-admin power; your main account
