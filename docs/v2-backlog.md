@@ -23,6 +23,19 @@ Collected during the v1/v1.1 build. Ordered roughly by value-per-effort.
    prim → userscript in the owner's logged-in desktop tab executes privileged
    Kosmi actions. Fragile to Kosmi UI changes.
 
+## Evaluated & set aside
+- **Stremio+Torrentio+WatchParty** (github.com/MateusAquino/WatchParty):
+  BetterStremio plugin — requires a PATCHED Stremio desktop client per
+  participant; syncs state only (each participant streams their own source);
+  no web link for viewers → can never reach prim browsers. Desktop-party
+  stack, parallel to the TV. Its open ws sync protocol is technically
+  speakable by our shell, but the prim still needs direct stream URLs, so it
+  reduces to the R2+native-player plan with added fragility.
+- **Google Drive / Dropbox as video hosting**: >100MB virus-scan
+  interstitial, expiring signed URLs, download quotas, unreliable Range
+  support — file-sharing services engineer against streaming. Object storage
+  (R2 first, B2+CF second) is the hosting tier.
+
 ## Known dead-ends (do not revisit without new facts)
 - Hiding elements inside the Kosmi iframe (cross-origin wall; proxy = MITM of
   user logins + ToS violation — disqualified).
