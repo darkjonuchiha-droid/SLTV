@@ -21,19 +21,13 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
    The bottom nav bar (logged-in state) is cropped away by default; the
    ☰ menu chip reveals it (per viewer) for reaching You → Account. */
 .login .bezel iframe {
-  width: 990px; max-width: 92%; height: calc(92% + 75px);
-  margin-bottom: -75px; clip-path: inset(0 0 75px 0); border-radius: 6px;
+  width: 990px; max-width: 92%; height: 92%; border-radius: 6px;
+  /* L-shaped clip: removes Kosmi's bottom tabs (Rooms/Chats/Notifications —
+     clipped areas are invisible AND unclickable) while keeping the rightmost
+     tab (You → Account) reachable. Bar height 75px, You ≈ right 27%. */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 73% 100%,
+                     73% calc(100% - 75px), 0 calc(100% - 75px));
 }
-.login.navshow .bezel iframe { height: 92%; margin-bottom: 0; clip-path: none; }
-
-.navtoggle {
-  display: none; position: absolute; right: 3%; bottom: 5%;
-  padding: .45em 1em; border-radius: 5px; border: 1px solid #4a5766;
-  background: rgba(10, 14, 20, .85); color: #a9bccf;
-  font: 600 13px system-ui, sans-serif; cursor: pointer; user-select: none;
-}
-.navtoggle:hover { background: #2c3a4a; color: #dfe8f2; }
-.login .navtoggle { display: block; }
 
 /* Pointer shield: unarmed = grace window, events pass through to Kosmi for the
    unmute click; armed = swallows hover/clicks so player controls never pop. */
