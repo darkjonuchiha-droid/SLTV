@@ -16,8 +16,9 @@
    `sltv-remote.lsl`, take it, attach as HUD (e.g. Bottom Right; resize on
    screen as you like). The buttons are live: Power, Fullscreen, CH −/+,
    Zoom, Channels (opens the picker), Menu (full dialog — Guests/Reload/
-   Calibrate live there for the owner). Give copies to guests AFTER granting
-   them via TV touch → Guests → + Add.
+   Calibrate/Add Ch live there for the owner) and LOCK (owner only — toggles
+   Interact mode without opening the menu). Give copies to guests AFTER
+   granting them via TV touch → Guests → + Add.
 
 ## Camera zoom ("Zoom into Media")
 - **Anyone can zoom by clicking the screen** — the TV enables the viewer's
@@ -43,6 +44,17 @@
   — H.264 appears premium-gated. VLC: Media → Convert/Save → profile
   "Video - VP80 + Vorbis (Webm)" (raise the video bitrate to ~3-6 Mb/s for
   1080p), or ffmpeg: `-c:v libvpx -crf 10 -b:v 4M -c:a libvorbis`.
+
+## Channels & handy menu items
+- **Add Ch** (owner): add a channel in-world without editing the notecard —
+  enter `Name|https://…` in the text box, or `del Name` to remove a runtime
+  channel. Stored in the object (LinksetData), survives resets. Notecard
+  channels are still managed in the notecard.
+- **Open Web** (owner + guests): opens the CURRENT channel's Kosmi room in
+  your real browser — where your Kosmi login lives. The one-click path to
+  full admin controls.
+- First-time watchers get a one-time on-screen setup card (sound/volume
+  tips) instead of chat spam; it never returns after "Got it".
 
 ## Managing the room from inside SL (Interact mode)
 1. In your Kosmi room settings (desktop browser, as owner): allow guests to

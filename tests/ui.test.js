@@ -164,3 +164,36 @@ describe('pointer shield', () => {
     expect(refs.shield.classList.contains('armed')).toBe(false);
   });
 });
+
+describe('first-visit guide', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    localStorage.clear();
+    document.body.innerHTML = '<div id="app"></div>';
+  });
+
+  it('shows on a fresh viewer', () => {
+    const refs = buildDom(document.getElementById('app'));
+    expect(refs.guide.classList.contains('show')).toBe(true);
+  });
+
+  it('stays hidden when the viewer was already guided', () => {
+    localStorage.setItem('sltv.guided', '1');
+    const refs = buildDom(document.getElementById('app'));
+    expect(refs.guide.classList.contains('show')).toBe(false);
+  });
+
+  it('"Got it" hides it and sets the flag', () => {
+    const refs = buildDom(document.getElementById('app'));
+    refs.guideOk.dispatchEvent(new Event('click'));
+    expect(refs.guide.classList.contains('show')).toBe(false);
+    expect(localStorage.getItem('sltv.guided')).toBe('1');
+  });
+
+  it('auto-hides after 30 s without setting the flag', () => {
+    const refs = buildDom(document.getElementById('app'));
+    vi.advanceTimersByTime(30001);
+    expect(refs.guide.classList.contains('show')).toBe(false);
+    expect(localStorage.getItem('sltv.guided')).toBeNull();
+  });
+});

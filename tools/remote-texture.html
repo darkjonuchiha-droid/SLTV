@@ -74,9 +74,11 @@ button(M + half + pad, rows[2][0] + pad, half, rows[2][1] - rows[2][0] - 2 * pad
 // zoom / channels
 button(M, rows[3][0] + pad, half, rows[3][1] - rows[3][0] - 2 * pad, '🔍 ZOOM', { font: '700 38px' });
 button(M + half + pad, rows[3][0] + pad, half, rows[3][1] - rows[3][0] - 2 * pad, 'CHANNELS', { font: '700 34px' });
-// menu
-button(M, rows[4][0] + pad, W - 2 * M, rows[4][1] - rows[4][0] - 2 * pad, '☰  MENU',
-  { top: '#2c3a4a', bottom: '#1d2732', border: '#3d5068' });
+// menu / lock
+button(M, rows[4][0] + pad, half, rows[4][1] - rows[4][0] - 2 * pad, '☰ MENU',
+  { top: '#2c3a4a', bottom: '#1d2732', border: '#3d5068', font: '700 36px' });
+button(M + half + pad, rows[4][0] + pad, half, rows[4][1] - rows[4][0] - 2 * pad, '🔒 LOCK',
+  { top: '#2c3a4a', bottom: '#1d2732', border: '#3d5068', font: '700 34px' });
 // logo
 g.fillStyle = '#5a6b7d';
 g.font = '800 46px system-ui, sans-serif';

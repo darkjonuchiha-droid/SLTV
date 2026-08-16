@@ -202,11 +202,11 @@ openDialog(key av, string ctx) {
     gDlgAvatar = av;
     gDlgCtx = ctx;
     if (ctx == "main") {
-        list btns = ["Power", "Fullscrn", "Ch +", "Ch -", "Channels", "Zoom"];
+        list btns = ["Power", "Fullscrn", "Ch +", "Ch -", "Channels", "Zoom", "Open Web"];
         if (av == llGetOwner()) {
             string lockBtn = "Unlock";
             if (!gLock) lockBtn = "Lock";
-            btns += ["Guests", "Reload", "Calibrate", lockBtn];
+            btns += ["Guests", "Reload", "Calibrate", lockBtn, "Add Ch"];
         }
         llDialog(av, "SLTV — " + llList2String(gChanNames, gCh), btns, DLG_CHANNEL);
     } else if (ctx == "channels") {
@@ -285,7 +285,19 @@ default
             gNcQuery = llGetNotecardLine(CONFIG_NC, gNcLine);
             return;
         }
-        // EOF
+        // EOF — append runtime channels (added in-world, LinksetData) after
+        // the notecard ones, still respecting MAX_CHANNELS
+        string xc = llLinksetDataRead("sltv.xchan");
+        if (xc != "") {
+            integer xi = 0;
+            string xo = llJsonGetValue(xc, [xi]);
+            while (xo != JSON_INVALID && llGetListLength(gChanNames) < MAX_CHANNELS) {
+                gChanNames += [llJsonGetValue(xo, ["n"])];
+                gChanUrls  += [llJsonGetValue(xo, ["u"])];
+                xi++;
+                xo = llJsonGetValue(xc, [xi]);
+            }
+        }
         if (gPageBase == "" || llGetListLength(gChanNames) == 0) {
             llOwnerSay("SLTV: config incomplete — need page_base and at least one channel.");
             return;
@@ -345,6 +357,13 @@ default
                 }
                 string b = llJsonGetValue(msg, ["b"]);
                 if (b == "power" || b == "fs" || b == "chup" || b == "chdn") doCmd(wearer, b);
+                else if (b == "lockt") {
+                    if (wearer == llGetOwner()) {
+                        doCmd(wearer, "lockt");
+                        if (!gLock) llRegionSayTo(wearer, 0, "SLTV: screen unlocked — clicks reach Kosmi for everyone. Lock again after managing.");
+                        else llRegionSayTo(wearer, 0, "SLTV: screen locked.");
+                    } else llRegionSayTo(wearer, 0, "SLTV: only the owner can unlock the screen.");
+                }
                 else if (b == "zoom") doZoomFor(wearer);
                 else if (b == "channels") openDialog(wearer, "channels");
                 else if (b == "menu") openDialog(wearer, "main");
@@ -367,6 +386,17 @@ default
                 doCmd(av, "lockt");
                 if (!gLock) llRegionSayTo(av, 0, "SLTV: screen unlocked — clicks now reach Kosmi on every watcher's screen. Lock it again after managing.");
                 else llRegionSayTo(av, 0, "SLTV: screen locked.");
+            }
+            else if (msg == "Open Web") {
+                llLoadURL(av, "Open this channel's Kosmi room in your own browser. Log in there for admin controls.",
+                    llList2String(gChanUrls, gCh));
+            }
+            else if (msg == "Add Ch" && av == llGetOwner()) {
+                gDlgCtx = "addchan";
+                llListenRemove(gDlgListen);
+                gDlgListen = llListen(DLG_CHANNEL, "", NULL_KEY, "");
+                llTextBox(av, "Add a channel:\n  Name|https://app.kosmi.io/room/xxx\n\nRemove a runtime channel:\n  del Name", DLG_CHANNEL);
+                return;
             }
         } else if (gDlgCtx == "channels") {
             doCmd(av, "ch:" + (string)((integer)msg - 1));
@@ -392,6 +422,41 @@ default
                     llOwnerSay("SLTV: granted " + llList2String(gSensorNames, idx) + ".");
                 }
             }
+        } else if (gDlgCtx == "addchan") {
+            if (av != llGetOwner()) return;
+            string xc = llLinksetDataRead("sltv.xchan");
+            if (xc == "") xc = "[]";
+            if (llGetSubString(msg, 0, 3) == "del ") {
+                string dn = llStringTrim(llGetSubString(msg, 4, -1), STRING_TRIM);
+                list keep = [];
+                integer removed = FALSE;
+                integer xi = 0;
+                string xo = llJsonGetValue(xc, [xi]);
+                while (xo != JSON_INVALID) {
+                    if (llJsonGetValue(xo, ["n"]) == dn && !removed) removed = TRUE;
+                    else keep += [xo];
+                    xi++;
+                    xo = llJsonGetValue(xc, [xi]);
+                }
+                if (removed) {
+                    llLinksetDataWrite("sltv.xchan", llList2Json(JSON_ARRAY, keep));
+                    llOwnerSay("SLTV: removed runtime channel '" + dn + "'. Restarting…");
+                    llResetScript();
+                } else llOwnerSay("SLTV: no runtime channel named '" + dn
+                    + "' (notecard channels are managed by editing the notecard).");
+                return;
+            }
+            integer bar = llSubStringIndex(msg, "|");
+            if (bar > 0) {
+                string nm = llStringTrim(llGetSubString(msg, 0, bar - 1), STRING_TRIM);
+                string xurl = llStringTrim(llGetSubString(msg, bar + 1, -1), STRING_TRIM);
+                if (nm != "" && llGetSubString(xurl, 0, 7) == "https://") {
+                    xc = llJsonSetValue(xc, [JSON_APPEND], llList2Json(JSON_OBJECT, ["n", nm, "u", xurl]));
+                    llLinksetDataWrite("sltv.xchan", xc);
+                    llOwnerSay("SLTV: added channel '" + nm + "'. Restarting…");
+                    llResetScript();
+                } else llOwnerSay("SLTV: expected Name|https://url");
+            } else llOwnerSay("SLTV: expected Name|https://url  (or: del Name)");
         } else if (gDlgCtx == "revoke") {
             if (msg == "Back") { openDialog(av, "guests"); return; }
             integer idx = (integer)msg - 1;

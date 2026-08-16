@@ -26,7 +26,7 @@ string buttonAt(float s, float t) {
     if (t > 0.64) return "fs";
     if (t > 0.46) { if (s < 0.5) return "chdn"; return "chup"; }
     if (t > 0.28) { if (s < 0.5) return "zoom"; return "channels"; }
-    if (t > 0.10) return "menu";
+    if (t > 0.10) { if (s < 0.5) return "menu"; return "lockt"; } // LOCK is owner-only (TV enforces)
     return ""; // logo area
 }
 

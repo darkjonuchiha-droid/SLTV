@@ -3,6 +3,8 @@ import { computeEffects } from './state.js';
 
 const OSD_MS = 4000;
 const UNMUTE_GRACE_MS = 60000;
+const GUIDE_MS = 30000;
+const GUIDE_KEY = 'sltv.guided';
 
 export function buildDom(root) {
   root.innerHTML =
@@ -14,6 +16,12 @@ export function buildDom(root) {
     '  </div>' +
     '  <div id="osd" class="osd"></div>' +
     '  <div id="status" class="status">no signal</div>' +
+    '  <div id="guide" class="guide"><div class="guide-card">' +
+    '<b>Welcome to SLTV</b>' +
+    '<span>▶ No sound or picture? Click the screen once.</span>' +
+    '<span>🔊 Volume: your viewer’s media slider (only affects you).</span>' +
+    '<button id="guide-ok">Got it</button>' +
+    '</div></div>' +
     '</div>';
   const refs = {
     root: root.querySelector('#tv'),
@@ -25,10 +33,25 @@ export function buildDom(root) {
     osdTimer: 0,
     shieldTimer: 0,
   };
+  refs.guide = root.querySelector('#guide');
+  refs.guideOk = root.querySelector('#guide-ok');
   refs.setStatus = (s) => refs.status.classList.toggle('show', s !== 'ok');
   // Clicking into the (cross-origin) iframe blurs the top window — that is the
   // watcher's unmute click; afterwards the screen goes inert to hover/clicks.
   window.addEventListener('blur', () => handleWindowBlur(refs, document.activeElement));
+
+  // One-time setup card per viewer (no chat spam). CEF may block storage.
+  let guided = false;
+  try { guided = localStorage.getItem(GUIDE_KEY) === '1'; } catch (e) {}
+  if (!guided) {
+    refs.guide.classList.add('show');
+    const guideTimer = setTimeout(() => refs.guide.classList.remove('show'), GUIDE_MS);
+    refs.guideOk.addEventListener('click', () => {
+      clearTimeout(guideTimer);
+      refs.guide.classList.remove('show');
+      try { localStorage.setItem(GUIDE_KEY, '1'); } catch (e) {}
+    });
+  }
   return refs;
 }
 

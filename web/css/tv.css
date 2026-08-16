@@ -49,3 +49,20 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
   opacity: 0; transition: opacity .3s ease; pointer-events: none;
 }
 .status.show { opacity: 1; }
+
+/* First-visit guide: container never eats clicks; only the card does. */
+.guide { position: absolute; inset: 0; display: none; align-items: flex-end; justify-content: center; pointer-events: none; }
+.guide.show { display: flex; }
+.guide-card {
+  pointer-events: auto; margin-bottom: 8%;
+  display: flex; flex-direction: column; gap: .5em; align-items: center;
+  padding: 1em 1.6em; border-radius: 8px; border: 1px solid #3d5068;
+  background: rgba(10, 14, 20, .92); color: #dfe8f2;
+  font: 400 15px/1.5 system-ui, sans-serif;
+}
+.guide-card b { font-size: 17px; letter-spacing: .08em; }
+.guide-card button {
+  margin-top: .4em; padding: .45em 1.6em; border-radius: 5px; border: 1px solid #4a5766;
+  background: #2c3a4a; color: #dfe8f2; font: 600 14px system-ui, sans-serif; cursor: pointer;
+}
+.guide-card button:hover { background: #39434f; }
