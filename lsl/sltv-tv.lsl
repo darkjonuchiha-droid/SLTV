@@ -117,9 +117,18 @@ applyMedia() {
         PRIM_MEDIA_HEIGHT_PIXELS, 720]);
 }
 
+applyClickAction() {
+    // Platform-level lock (Jon's design): locked = clicks/touches ignored by
+    // the whole prim; unlocked = normal touch. Whether IGNORE also gates
+    // media-face input/hover is undocumented — in-world testing decides.
+    if (gLock) llSetClickAction(CLICK_ACTION_IGNORE);
+    else llSetClickAction(CLICK_ACTION_TOUCH);
+}
+
 broadcast() {
     gSeq++;
     persist();
+    applyClickAction();
     applyMedia();
 }
 
@@ -272,6 +281,7 @@ default
 {
     state_entry() {
         llListen(APP_CHANNEL, "", NULL_KEY, "");
+        llListen(77, "", llGetOwner(), ""); // owner failsafe: /77 unlock, /77 menu
         restore();
         gConfigured = FALSE;
         gChanNames = [];
@@ -340,9 +350,11 @@ default
                 gScreenNorm = (vector)llJsonGetValue(nr, ["n"]);
             else llLinksetDataDelete("sltv.norm");
         }
+        applyClickAction();
         applyMedia();
         llOwnerSay("SLTV: screen attached — " + (string)llGetListLength(gChanNames)
-            + " channel(s), state rides the media URL.");
+            + " channel(s), state rides the media URL."
+            + " Locked TVs ignore touches: use the remote, or /77 menu, /77 unlock.");
         // TV (re)started: ask remotes in the region to re-pair
         llRegionSay(APP_CHANNEL, llList2Json(JSON_OBJECT, ["cmd", "tvup"]));
     }
@@ -358,6 +370,13 @@ default
     }
 
     listen(integer chan, string name, key id, string msg) {
+        if (chan == 77) { // owner failsafe (llListen key-filtered to owner)
+            msg = llToLower(llStringTrim(msg, STRING_TRIM));
+            if (msg == "unlock" && gLock) doCmd(id, "lockt");
+            else if (msg == "lock" && !gLock) doCmd(id, "lockt");
+            else if (msg == "menu") openDialog(id, "main");
+            return;
+        }
         if (chan == APP_CHANNEL) {
             // HUD speaking: id is the HUD prim; trust anchor is the wearer.
             key wearer = llGetOwnerKey(id);

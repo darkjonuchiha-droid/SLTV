@@ -56,6 +56,17 @@
 - First-time watchers get a one-time on-screen setup card (sound/volume
   tips) instead of chat spam; it never returns after "Got it".
 
+## Hard lock (CLICK_ACTION toggle)
+Locking the TV now also sets the prim to `CLICK_ACTION_IGNORE`: the whole
+object ignores clicks at the platform level (unlock restores normal touch).
+Consequences to know:
+- A locked TV can't be touched — not even by the owner. Unlock via the
+  remote's LOCK button, or the owner chat failsafe: **/77 unlock** (also
+  /77 lock, /77 menu). A freshly rezzed TV boots locked!
+- While locked, new arrivals can't click-to-unmute; briefly Unlock (or flick
+  channels while unlocked) when someone joins mid-show.
+- Clicks pass through to whatever is behind the TV while locked.
+
 ## Managing the room from inside SL (Interact mode)
 1. In your Kosmi room settings (desktop browser, as owner): allow guests to
    control playback.
