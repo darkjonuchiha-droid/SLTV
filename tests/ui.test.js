@@ -71,6 +71,16 @@ describe('ui', () => {
     expect(refs.root.classList.contains('fullscreen')).toBe(false);
   });
 
+  it('login-mode channel gets the narrow-column class (Kosmi mobile layout <1000px)', () => {
+    applyState(refs, null, base);
+    expect(refs.root.classList.contains('login')).toBe(false);
+    const login = { ...base, seq: 2, channels: [{ n: 'Kosmi Login', u: 'https://app.kosmi.io/' }], ch: 0 };
+    applyState(refs, base, login);
+    expect(refs.root.classList.contains('login')).toBe(true);
+    applyState(refs, login, { ...base, seq: 3 });
+    expect(refs.root.classList.contains('login')).toBe(false);
+  });
+
   it('setStatus shows and hides the reconnect overlay', () => {
     refs.setStatus('reconnecting');
     expect(refs.status.classList.contains('show')).toBe(true);

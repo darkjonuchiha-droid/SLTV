@@ -97,6 +97,9 @@ export function applyState(refs, prev, next) {
     if (next.power) {
       const chan = next.channels[next.ch];
       refs.frame.src = chan.u;
+      // login mode renders narrow so Kosmi serves its <1000px mobile layout
+      // (big in-page login buttons instead of the desktop top-bar popups)
+      refs.root.classList.toggle('login', chan.u === 'https://app.kosmi.io/');
       if (fx.channelChanged && prev) showOsd(refs, chan.n);
       resetShield(refs); // fresh room content may need a fresh unmute click
     } else {
