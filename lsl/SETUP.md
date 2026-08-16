@@ -40,10 +40,15 @@
   fine in SL's browser).
 - **YouTube channels always show small letterbox bars** — that's YouTube's own
   embedded player inside Kosmi; neither Kosmi nor SLTV can remove it.
-- **Pre-convert movies to WebM (VP8/VP9 + Vorbis) for free-tier Kosmi sharing**
-  — H.264 appears premium-gated. VLC: Media → Convert/Save → profile
-  "Video - VP80 + Vorbis (Webm)" (raise the video bitrate to ~3-6 Mb/s for
-  1080p), or ffmpeg: `-c:v libvpx -crf 10 -b:v 4M -c:a libvorbis`.
+- **Convert big/exotic files to 720p H.264 MP4** — verified 2026-08-16 that
+  Kosmi's free tier accepts H.264 MP4 for local-file sharing (the H.264
+  "premium" gate applies to Kosmi's own WebRTC *transmission* codec, not to
+  the file you share). No need for slow VP8/WebM encodes.
+  The prim renders at 1280×720, so 720p is the target; with an NVIDIA GPU a
+  4K HDR HEVC film transcodes in ~20 min:
+  `ffmpeg -hwaccel cuda -i in.mkv -map 0:v:0 -map 0:a:<eng> -vf "scale=1280:-2:flags=lanczos,zscale=t=linear:npl=100,format=gbrpf32le,zscale=p=bt709,tonemap=tonemap=hable:desat=0,zscale=t=bt709:m=bt709:r=tv,format=yuv420p" -c:v h264_nvenc -preset p5 -rc vbr -cq 23 -b:v 2M -maxrate 3500k -bufsize 7M -c:a aac -ac 2 -b:a 160k -movflags +faststart out.mp4`
+  (The zscale/tonemap chain converts HDR→SDR — skip it and HDR sources look
+  washed-out grey. Browsers can't decode HEVC or E-AC3, hence the transcode.)
 
 ## Channels & handy menu items
 - **Add Ch** (owner): add a channel in-world without editing the notecard —
