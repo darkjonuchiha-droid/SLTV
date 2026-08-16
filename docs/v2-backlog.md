@@ -1,5 +1,56 @@
 # SLTV v2 backlog (parked 2026-08-16)
 
+## Agreed v2 shape (design session 2026-08-16)
+
+**Goal order:** 1) synced YouTube, 2) synced self-hosted video + music.
+Personal use: one owner streaming to friends in SL. No backend required for
+either (see "Control model"); a realtime bus is optional polish, not a
+prerequisite.
+
+**Own the player.** YouTube via the IFrame Player API (playVideo/pauseVideo/
+seekTo/getCurrentTime + onStateChange) and `<video>`/`<audio>` for files —
+both same-origin, so no Kosmi chrome, no guest identity, no meters, and our
+own OSD/subtitles/fit. Kosmi remains a channel type for zero-prep screen and
+local-file sharing (their servers fan out; our uplink doesn't).
+
+**Control model (decided):**
+- *Shared* (rides the bus, all screens obey): play/pause, seek, plus existing
+  power/channel/fullscreen/lock. Issued from the REMOTE, because LSL is the
+  only layer that knows which avatar is acting → per-avatar permissions via
+  the existing guest ACL. Remote texture v2 needs a playback row
+  (◀◀ / ⏯ / ▶▶); these no-op on Kosmi channels.
+- *Per-viewer* (local, never synced): volume + mute (each watcher's own
+  `<video>.volume`, remembered in localStorage), subtitles on/off + size,
+  picture fit, and a **resync** button (snap back to group position after a
+  buffer/drift).
+- Constraint that forces this split: every watcher loads the identical page,
+  so on-screen controls cannot identify the clicker — they are all-or-nothing
+  (already gated by Lock). Per-person permission must come from in-world.
+
+**Sync math (no backend needed):** state carries `position`, `playing`,
+`at` (sim time of command); each screen computes expected position and
+self-corrects when drift > ~2 s. Commands are human-paced, so the existing
+fragment bus suffices; a Durable Object (free tier, ~100 lines, WebSocket
+hibernation) only buys sub-second feel, long playlists, non-SL participants,
+and chat.
+
+**Source menu (complementary, not competing):**
+| Mode | Prep | Quality | Load | Needs you online |
+|---|---|---|---|---|
+| Kosmi share | none | live re-encode | your CPU, 1 upload | yes |
+| Local file + `cloudflared` tunnel | seconds | original | uplink × viewers | yes |
+| R2 hosted | upload once | original | none (free egress) | no |
+| VLC/ffmpeg live stream | minutes | re-encode | CPU + uplink × viewers | yes |
+HTTPS is mandatory for all of them (our page is HTTPS → mixed content blocks
+plain http). Tunnel URLs change per run; TV's **Add Ch** absorbs that without
+notecard edits.
+
+**Codec reality with our own player:** MP4/H.264+AAC plays natively — the
+WebM conversions were only needed for Kosmi's free-tier transmission codec.
+MKV needs a seconds-long remux (`-c copy -movflags +faststart`, pick one
+audio track), HEVC/AC3 need real transcode, AV1 likely decodes (CEF 139).
+Prim renders at 1280×720, so 720p is the native target; VP9 ≈ half of VP8.
+
 Collected during the v1/v1.1 build. Ordered roughly by value-per-effort.
 
 1. **Native `video:` channel type** — our shell plays direct stream URLs
