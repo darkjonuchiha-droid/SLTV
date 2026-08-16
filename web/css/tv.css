@@ -22,11 +22,11 @@ html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
    ☰ menu chip reveals it (per viewer) for reaching You → Account. */
 .login .bezel iframe {
   width: 990px; max-width: 92%; height: 92%; border-radius: 6px;
-  /* L-shaped clip: removes Kosmi's bottom tabs (Rooms/Chats/Notifications —
-     clipped areas are invisible AND unclickable) while keeping the rightmost
-     tab (You → Account) reachable. Bar height 75px, You ≈ right 27%. */
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 73% 100%,
-                     73% calc(100% - 75px), 0 calc(100% - 75px));
+  /* Crop Kosmi's entire bottom tab row (75px) — clipped = invisible and
+     unclickable. The flow lands on the You tab by default (Jon's in-world
+     observation), so no navigation is lost and nobody can wander into
+     Rooms/Chats/Notifications. */
+  clip-path: inset(0 0 75px 0);
 }
 
 /* Pointer shield: unarmed = grace window, events pass through to Kosmi for the
