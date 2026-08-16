@@ -66,12 +66,26 @@ Note: while unlocked, ANY watcher can click the room too (all SL watchers are
 equal guests to Kosmi). Unlock for private parties; keep public TVs locked.
 
 ## Why am I a guest in my own room on the TV?
-Every watcher's SL viewer runs its own fresh embedded browser with no cookies —
-including yours — so Kosmi sees a new anonymous guest, not your account.
-That's by design: **manage the room from your normal desktop browser** (logged
-in as owner — queue media, moderate, start file shares; Kosmi syncs it to all
-watchers instantly), and treat the SL TV as the shared display, driven by its
-own remote. Don't try to log in on the prim.
+Every watcher's SL viewer runs its own embedded browser with its own cookies —
+so Kosmi sees an anonymous guest, not your desktop login. Anonymous guests get
+a NEW identity every session, which is why per-session admin grants don't
+stick. The fix is giving the TV its own *registered* identity:
+
+## The TV-account pattern (your profile on the TV, permanently)
+1. Create a **dedicated Kosmi account** for the TV (username+password login,
+   its own unique password — never your main account's).
+2. From your desktop (main account, room owner): **promote the TV account to
+   admin** in your room. Roles stick to registered users — this is one-time.
+3. In SL: Menu → **Unlock**, click the screen, log into Kosmi *on the prim*
+   with the TV account. The viewer's cookie store keeps the session — it
+   survives channel switches, power cycles, and normally full SL relogs
+   (verified in-world 2026-08-15). One login per machine/viewer install.
+4. **Lock** the screen again.
+Result: the TV is a persistent, admin-capable identity in your room — no
+desktop ritual. If it's ever logged out (viewer cache cleared), repeat step 3.
+Security note: the TV account holds only room-admin power; your main account
+never touches the prim. For quick full-account tasks, **Open Web** jumps your
+desktop browser to the current room.
 
 ## Troubleshooting
 - "no signal" on the screen → the media URL's state fragment is missing or
